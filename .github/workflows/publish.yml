@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push for the "main" branch
+  push:
+    branches: ["main"]
+
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: 😎 Checkout
+        uses: actions/checkout@main
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: 🦤 Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: 🏗 Build package
+        if: |
+          github.ref == 'refs/heads/main' && 
+          github.event_name == 'push'
+        run: poetry build
+
+      - name: 📰 Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
