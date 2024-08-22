@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "oadr3"
-version = "0.1.0"
+version = "0.1.1"
 description = "OpenADR 3 Python Library"
 authors = ["Jean-Paul Balabanian <jean-paul.balabanian@eviny.no>"]
-license = "Apache License Version 2.0"
+license = "Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/prelectai/oadr3"
 
 [tool.poetry.dependencies]
 python = "^3.11"
