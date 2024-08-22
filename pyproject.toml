@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "oadr3"
+version = "0.1.0"
+description = "OpenADR 3 Python Library"
+authors = ["Jean-Paul Balabanian <jean-paul.balabanian@eviny.no>"]
+license = "Apache License Version 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+pytest = "^8.3.2"
+flake8-annotations = "^3.1.1"
+flake8-docstrings = "^1.7.0"
+pep8-naming = "^0.14.1"
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
