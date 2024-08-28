@@ -27,13 +27,13 @@ jobs:
       - name: 🐌 Check formatting with Black
         run: poetry run black --check .
 
-#      - name: 🐙 Check alphabetic import statements
-#        run: |
-#          poetry run isort --check-only toadr3/
-#          poetry run isort --check-only tests/
+      - name: 🐙 Check alphabetic import statements
+        run: |
+          poetry run isort --check-only toadr3/
+          poetry run isort --check-only tests/
 
       - name: 🙉 Lint with flake8
         run: poetry run flake8 --statistics --count
 
-#      - name: 🐸 Run tests with pytest
-#        run: poetry run pytest tests/
+      - name: 🐸 Run tests with pytest
+        run: poetry run pytest tests/
