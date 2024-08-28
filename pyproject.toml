@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toadr3"
-version = "0.1.5a3"
+version = "0.2.0"
 description = "Tiny OpenADR 3 compatible client Python Library"
 authors = ["Jean-Paul Balabanian <jean-paul.balabanian@eviny.no>"]
 license = "Apache-2.0"
@@ -9,6 +9,8 @@ repository = "https://github.com/prelectai/toadr3"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+aiohttp = "^3.10.5"
+aiodns = "^3.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
@@ -18,6 +20,9 @@ pytest = "^8.3.2"
 flake8-annotations = "^3.1.1"
 flake8-docstrings = "^1.7.0"
 pep8-naming = "^0.14.1"
+rich = "^13.7.1"
+pytest-aiohttp = "^1.0.5"
+pytest-asyncio = "^0.24.0"
 
 [tool.black]
 line-length = 100
@@ -26,6 +31,13 @@ line-length = 100
 profile = "black"
 line_length = 100
 multi_line_output = 3
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["poetry-core"]
