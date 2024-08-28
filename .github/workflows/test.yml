@@ -1,0 +1,104 @@
+name: Toadr3
+run-name: "Test, check and verify!"
+
+on: [ push, pull_request ]
+
+jobs:
+  Continous-Testing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.11", "3.12" ]
+
+    steps:
+      - name: 😎 Checkout
+        uses: actions/checkout@main
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 🦤 Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: 🐌 Check formatting with Black
+        run: poetry run black --check .
+
+#      - name: 🐙 Check alphabetic import statements
+#        run: |
+#          poetry run isort --check-only toadr3/
+#          poetry run isort --check-only tests/
+
+      - name: 🙉 Lint with flake8
+        run: poetry run flake8 --statistics --count
+
+#      - name: 🐸 Run tests with pytest
+#        run: poetry run pytest tests/
+
+      # The following steps will:
+      # - Fetch the current package version
+      # - Check if the version already exists in the repository
+      #   - Add a comment to the pull request if the version already exists
+      #   - Fail the workflow if the version already exists
+
+      - name: 🦑 Fetch package version
+        run: echo "CURRENT_VERSION=v$(poetry version --short)" >> $GITHUB_ENV
+
+      # Should only run during a pull request event into the main branch.
+      # This will check if the version already exists in the registry.
+      - name: 🦔 Check if tag exists
+        id: tag-checker
+        uses: actions/github-script@v6
+        if:
+          matrix.python-version == '3.12' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.base.ref == 'main'
+        with:
+          result-encoding: string
+          script: |
+            const tags = await github.rest.repos.listTags({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            for (const tag of tags.data) {
+              if (tag.name === process.env.CURRENT_VERSION) {
+                return 'failure';
+              }
+            }
+            
+            return 'success';
+
+      # Add a comment to the pull request if the version already exists.
+      - name: 🌤️ Update Pull Request if version already exists
+        uses: actions/github-script@v6
+        if: |
+          matrix.python-version == '3.12' &&
+          github.event_name == 'pull_request' &&
+          steps.tag-checker.outputs.result == 'failure'
+        with:
+          script: |
+            const output = `#### 😱 Version already exists! \`${{ env.CURRENT_VERSION }}\`
+            Update the version number to be able to deploy a new release or mark as a pre-release according to [SemVer](https://semver.org).
+            
+            For example: `poetry version minor` or `poetry version patch`, to update the minor or the patch version.
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      # Fail the workflow if the version already exists.
+      - name: 🚨 Fail if version already exists
+        if: |
+          matrix.python-version == '3.12' && 
+          github.event_name == 'pull_request' &&
+          steps.tag-checker.outputs.result == 'failure'
+        run: exit 1
