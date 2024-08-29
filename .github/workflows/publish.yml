@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: 🐍 Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.12
 
@@ -27,6 +27,11 @@ jobs:
         run: |
           pip install poetry
           poetry install
+
+      - name: 🦑 Fetch package version
+        run: |
+          echo "CURRENT_VERSION=v$(poetry version --short)" >> $GITHUB_ENV
+          echo "Version = v$(poetry version --short)"
 
       - name: 🏗 Build package
         if: |
@@ -41,7 +46,7 @@ jobs:
         if: |
           github.ref == 'refs/heads/main' && 
           github.event_name == 'push'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.git.createRef({
