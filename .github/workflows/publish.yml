@@ -31,7 +31,6 @@ jobs:
       - name: 🦑 Fetch package version
         run: |
           echo "CURRENT_VERSION=v$(poetry version --short)" >> $GITHUB_ENV
-          echo "PRE_RELEASE=$(poetry version --short | cut -d'.' -f3)" >> $GITHUB_ENV
           echo "Version = v$(poetry version --short)"
 
       - name: 🏗 Build package
