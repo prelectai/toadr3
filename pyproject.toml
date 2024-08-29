@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toadr3"
-version = "0.1.5a2"
+version = "0.1.5a3"
 description = "Tiny OpenADR 3 compatible client Python Library"
 authors = ["Jean-Paul Balabanian <jean-paul.balabanian@eviny.no>"]
 license = "Apache-2.0"
