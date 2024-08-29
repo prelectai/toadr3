@@ -38,7 +38,6 @@ jobs:
 
       - name: 🏷️ Create tag
         if: |
-          matrix.python-version == '3.12' && 
           github.ref == 'refs/heads/main' && 
           github.event_name == 'push'
         uses: actions/github-script@v6
