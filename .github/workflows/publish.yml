@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.TOKEN }}
         shell: bash
         run: |
-          if [[ "${{ env.CURRENT_VERSION }}" == *(a|b|rc)* ]]; then
+          if [[ "${{ env.CURRENT_VERSION }}" == "*(a|b|rc)*" ]]; then
             echo "Creating pre-release ${{ env.CURRENT_VERSION }}"
             gh release create --prerelease ${{ env.CURRENT_VERSION }} dist/*
           else
