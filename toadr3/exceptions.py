@@ -41,3 +41,13 @@ class ToadrException(Exception):
     def json_response(self) -> dict:
         """The JSON response from the request (full JSON error response, if available)."""
         return self._json_response
+
+
+class SchemaException(Exception):
+    def __init__(self, message: str):
+        self._message = message
+
+    @property
+    def message(self) -> str:
+        """A short description of the exception."""
+        return self._message
