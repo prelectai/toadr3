@@ -2,13 +2,17 @@ class ToadrException(Exception):
     def __init__(
         self,
         message: str,
-        status_code: int,
+        status_code: int | str,
         reason: str = None,
         headers: dict = None,
         json_response: dict = None,
     ):
         self._message = message
-        self._status_code = status_code
+
+        if isinstance(status_code, str):
+            status_code = int(status_code)
+
+        self._status_code: int = status_code
         self._reason = reason
         self._headers = headers
         self._json_response = json_response
@@ -19,7 +23,7 @@ class ToadrException(Exception):
         return self._message
 
     @property
-    def status_code(self) -> str:
+    def status_code(self) -> int:
         """The HTTP status code of the response."""
         return self._status_code
 

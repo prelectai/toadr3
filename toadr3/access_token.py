@@ -3,7 +3,7 @@ import os
 
 import aiohttp
 
-from .exception import ToadrException
+from .exceptions import ToadrException
 
 
 class AccessToken:
