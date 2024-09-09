@@ -7,14 +7,8 @@ class PayloadDescriptor:
             raise SchemaException("Missing 'payloadType' in payload descriptor schema.")
 
         self._payload_type = data["payloadType"]
-        self._units: str | None = None
-        self._currency: str | None = None
-
-        if "units" in data:
-            self._units = data["units"]
-
-        if "currency" in data:
-            self._currency = data["currency"]
+        self._units: str | None = data.get("units", None)
+        self._currency: str | None = data.get("currency", None)
 
     @property
     def payload_type(self) -> str:
