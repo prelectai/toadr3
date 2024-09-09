@@ -6,6 +6,12 @@ from .exceptions import SchemaException
 def parse_values_map(data: list) -> dict[str, Any]:
     """Parse a values map object into a dictionary.
 
+    The values map object is a list of objects, each with a 'type' and 'values' key.
+    Technically, the 'key' can be duplicated, but we assume that it is unique. If we find
+    documentation that says otherwise, we can change this. But it would be nice to know if
+    the values of duplicate keys can be combined or if they must be handled separately before
+    we make that change.
+
     Parameters
     ----------
     data : list
