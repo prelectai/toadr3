@@ -15,42 +15,18 @@ class ReportDescriptor:
             raise SchemaException("Missing 'payloadType' in report descriptor schema.")
 
         self._payload_type: str = data["payloadType"]
-        self._reading_type: str | None = None
-        self._units: str | None = None
+        self._reading_type: str | None = data.get("readingType", None)
+        self._units: str | None = data.get("units", None)
         self._targets: dict[str, Any] | None = None
-        self._aggregate: bool = False
-        self._start_interval: int = -1
-        self._num_intervals: int = -1
-        self._historical: bool = True
-        self._frequency: int = -1
-        self._repeat: int = 1
-
-        if "readingType" in data:
-            self._reading_type = data["readingType"]
-
-        if "units" in data:
-            self._units = data["units"]
+        self._aggregate: bool = data.get("aggregate", False)
+        self._start_interval: int = int(data.get("startInterval", -1))
+        self._num_intervals: int = int(data.get("numIntervals", -1))
+        self._historical: bool = data.get("historical", True)
+        self._frequency: int = int(data.get("frequency", -1))
+        self._repeat: int = int(data.get("repeat", 1))
 
         if "targets" in data:
             self._targets = parse_values_map(data["targets"])
-
-        if "aggregate" in data:
-            self._aggregate = data["aggregate"]
-
-        if "startInterval" in data:
-            self._start_interval = int(data["startInterval"])
-
-        if "numIntervals" in data:
-            self._num_intervals = int(data["numIntervals"])
-
-        if "historical" in data:
-            self._historical = data["historical"]
-
-        if "frequency" in data:
-            self._frequency = int(data["frequency"])
-
-        if "repeat" in data:
-            self._repeat = int(data["repeat"])
 
     @property
     def payload_type(self) -> str:
