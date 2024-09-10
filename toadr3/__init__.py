@@ -1,5 +1,6 @@
 from .access_token import AccessToken, acquire_access_token
 from .event import Event
+from .events import TargetType, get_events
 from .exceptions import SchemaException, ToadrException
 from .interval import Interval
 from .interval_period import IntervalPeriod
