@@ -93,7 +93,7 @@ async def acquire_access_token(
     ------
     ValueError
         If the `client_id` or `client_secret` are not provided and not available in the environment.
-    aiohttp.ClientResponseError
+    toadr3.ToadrException
         If the request to the token provider fails.
     """
     if client_id is None:
