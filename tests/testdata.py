@@ -1,7 +1,7 @@
 from typing import Any
 
 
-def create_event(**kwargs: dict[str, Any]) -> dict:
+def create_event(**kwargs: dict[str, Any]) -> dict[str, Any]:
     event = {
         "id": "37",
         "createdDateTime": "2024-08-15T08:52:55.578Z",
@@ -45,3 +45,43 @@ def create_event(**kwargs: dict[str, Any]) -> dict:
         if key in event:
             event[key] = value
     return event
+
+
+def create_report(**kwargs: dict[str, Any]) -> dict[str, Any]:
+    report = {
+        "id": "19586",
+        "createdDateTime": "2024-09-12T08:45:56.472Z",
+        "modificationDateTime": "2024-09-12T08:46:56.472Z",
+        "objectType": "REPORT",
+        "programID": "1",
+        "eventID": "86",
+        "clientName": "YAC",
+        "reportName": "Test Report",
+        "payloadDescriptors": [
+            {
+                "objectType": "REPORT_PAYLOAD_DESCRIPTOR",
+                "payloadType": "POWER_LIMIT_ACKNOWLEDGEMENT",
+            }
+        ],
+        "resources": [
+            {
+                "resourceName": "121",
+                "intervals": [
+                    {
+                        "id": 0,
+                        "payloads": [
+                            {
+                                "type": "POWER_LIMIT_ACKNOWLEDGEMENT",
+                                "values": [True],
+                            }
+                        ],
+                    }
+                ],
+                "intervalPeriod": {"start": "2024-08-12T12:15:00.000Z", "duration": "PT15M"},
+            }
+        ],
+    }
+    for key, value in kwargs.items():
+        if key in report:
+            report[key] = value
+    return report
