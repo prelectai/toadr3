@@ -118,8 +118,7 @@ async def events_session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
     app.router.add_get("/events", events_response_get)
-    client = await aiohttp_client(app)
-    return client
+    return await aiohttp_client(app)
 
 
 @pytest.fixture

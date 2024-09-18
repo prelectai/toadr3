@@ -108,6 +108,7 @@ async def token_response(request: web.Request) -> web.Response:
             case _:
                 # unknown error
                 pytest.fail(f"Unknown query: {grant_type}, {client_id}, {client_secret}, {scope}")
+    raise UserWarning(f"Invalid request method: {request.method}")
 
 
 async def test_acquire_access_token(aiohttp_client: AiohttpClient):
