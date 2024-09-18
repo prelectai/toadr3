@@ -12,6 +12,8 @@ select = [
     "ASYNC",
     # flake8-bugbear
     "B",
+    # blind except
+    "BLE",
     # comprehensions
     "C4",
     # pydocstyle
@@ -24,6 +26,8 @@ select = [
     "ERA",
     # Pyflakes
     "F",
+    # refurb
+    "FURB",
     # isort
     "I",
     # pep8 naming
