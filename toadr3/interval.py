@@ -1,6 +1,6 @@
 from typing import Any
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 from .interval_period import IntervalPeriod
 from .values_map import parse_values_map
 
@@ -17,10 +17,10 @@ class Interval:
         self._data = data
 
         if "id" not in data:
-            raise SchemaException("Missing 'id' in interval schema.")
+            raise SchemaError("Missing 'id' in interval schema.")
 
         if "payloads" not in data:
-            raise SchemaException("Missing 'payloads' in interval schema.")
+            raise SchemaError("Missing 'payloads' in interval schema.")
 
         self._id = data["id"]
         self._interval_period = None

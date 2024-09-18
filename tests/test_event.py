@@ -72,12 +72,12 @@ def test_event_defaults():
 
 
 def test_event_exception_program_id():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Event({"objectType": "EVENT", "intervals": [{"id": 0, "payloads": []}]})
     assert str(e.value) == "Missing 'programID' in event schema."
 
 
 def test_event_exception_intervals():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Event({"objectType": "EVENT", "programID": "69"})
     assert str(e.value) == "Missing 'intervals' in event schema."

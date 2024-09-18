@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from toadr3 import IntervalPeriod, SchemaException
+from toadr3 import IntervalPeriod, SchemaError
 
 td = datetime.timedelta
 
@@ -44,7 +44,7 @@ def test_interval_periods():
     assert ip.duration == td(seconds=0)
     assert ip.randomize_start == td(seconds=0)
 
-    with pytest.raises(SchemaException):
+    with pytest.raises(SchemaError):
         interval_period(None, "PT1H", "PT30M")
 
     ip = interval_period("2024-09-02T06:12:24Z", "PT17M", "PT37.02S")

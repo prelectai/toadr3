@@ -1,6 +1,6 @@
 from typing import Any
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 from .values_map import parse_values_map
 
 
@@ -12,7 +12,7 @@ class ReportDescriptor:
 
     def __init__(self, data: dict):
         if "payloadType" not in data:
-            raise SchemaException("Missing 'payloadType' in report descriptor schema.")
+            raise SchemaError("Missing 'payloadType' in report descriptor schema.")
 
         self._payload_type: str = data["payloadType"]
         self._reading_type: str | None = data.get("readingType", None)

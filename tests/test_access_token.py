@@ -2,7 +2,7 @@ import pytest
 from aiohttp import web
 from aiohttp.pytest_plugin import AiohttpClient
 
-from toadr3 import AccessToken, ToadrException, acquire_access_token
+from toadr3 import AccessToken, ToadrError, acquire_access_token
 
 
 def test_valid_access_token():
@@ -141,10 +141,10 @@ async def check_acquire_access_token_error(
     app.router.add_post("/token", token_response)
     client = await aiohttp_client(app)
 
-    with pytest.raises(ToadrException) as e:
+    with pytest.raises(ToadrError) as e:
         await acquire_access_token(client, "/token", grant_type, scope, client_id, client_secret)
 
-    err: ToadrException = e.value
+    err: ToadrError = e.value
     assert err.message == "Failed to acquire access token"
     assert err.status_code == expected_status
     assert err.json_response["error"] == expected_error

@@ -1,6 +1,6 @@
 import datetime
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 from .iso_date import parse_iso8601_duration
 
 
@@ -13,7 +13,7 @@ class IntervalPeriod:
     def __init__(self, data: dict[str, str]):
         """Create an interval period object from parsed JSON data."""
         if "start" not in data:
-            raise SchemaException("Missing 'start' in interval period schema.")
+            raise SchemaError("Missing 'start' in interval period schema.")
 
         self._start = datetime.datetime.fromisoformat(data["start"])
         self._duration = datetime.timedelta(seconds=0)

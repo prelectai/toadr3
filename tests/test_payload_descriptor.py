@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from toadr3 import PayloadDescriptor, SchemaException
+from toadr3 import PayloadDescriptor, SchemaError
 
 
 def test_payload_descriptor():
@@ -36,7 +36,7 @@ def test_payload_descriptor_defaults():
 def test_payload_descriptor_exception_missing_payload_type():
     data = json.loads("""{"units": "KW"}""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         PayloadDescriptor(data)
 
     assert str(e.value) == "Missing 'payloadType' in payload descriptor schema."

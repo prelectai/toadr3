@@ -3,7 +3,7 @@ from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
 from testdata import create_event
 
-from toadr3 import AccessToken, TargetType, ToadrException, get_events
+from toadr3 import AccessToken, TargetType, ToadrError, get_events
 
 
 # ------------------------------------------------------------
@@ -135,7 +135,7 @@ async def token() -> AccessToken:
 
 
 async def test_events_forbidden(events_session: ClientSession):
-    with pytest.raises(ToadrException) as exc_info:
+    with pytest.raises(ToadrError) as exc_info:
         _ = await get_events(events_session, "", None)
 
     assert exc_info.value.message == "Forbidden"
