@@ -51,8 +51,8 @@ select = [
     "S",
     # self
     "SLF",
-#    # simplify
-#    "SIM",
+    # simplify
+    "SIM",
     # slots
     "SLOT",
     # type check
