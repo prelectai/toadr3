@@ -1,6 +1,6 @@
 from typing import Any
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 
 
 def parse_values_map(data: list) -> dict[str, Any]:
@@ -23,24 +23,24 @@ def parse_values_map(data: list) -> dict[str, Any]:
         The parsed values map object as a dictionary.
     """
     if not isinstance(data, list):
-        raise SchemaException("Expected 'valuesMap' to be an array.")
+        raise SchemaError("Expected 'valuesMap' to be an array.")
 
     result = {}
     for item in data:
         if not isinstance(item, dict):
-            raise SchemaException("Expected 'valuesMap' to contain objects.")
+            raise SchemaError("Expected 'valuesMap' to contain objects.")
 
         if "type" not in item:
-            raise SchemaException("Missing 'type' in values map schema.")
+            raise SchemaError("Missing 'type' in values map schema.")
 
         if "values" not in item:
-            raise SchemaException(f"Missing 'values' in values map schema for '{item['type']}'.")
+            raise SchemaError(f"Missing 'values' in values map schema for '{item['type']}'.")
 
         if not isinstance(item["values"], list):
-            raise SchemaException(f"Expected 'values' for '{item['type']}' to be an array.")
+            raise SchemaError(f"Expected 'values' for '{item['type']}' to be an array.")
 
         if item["type"] in result:
-            raise SchemaException(f"Duplicate type '{item['type']}' in values map schema.")
+            raise SchemaError(f"Duplicate type '{item['type']}' in values map schema.")
 
         result[item["type"]] = []
         for value in item["values"]:
@@ -52,5 +52,5 @@ def parse_values_map(data: list) -> dict[str, Any]:
                     result[item["type"]].append((x, y))
                 case _:
                     msg = f"Unsupported type for '{item['type']}': '{value}' in values map schema"
-                    raise SchemaException(msg)
+                    raise SchemaError(msg)
     return result

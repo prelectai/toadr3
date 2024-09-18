@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from toadr3 import SchemaException, parse_values_map
+from toadr3 import SchemaError, parse_values_map
 
 
 def test_values_map():
@@ -38,7 +38,7 @@ def test_values_map_exception_not_a_list():
         """
     )
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Expected 'valuesMap' to be an array."
@@ -47,7 +47,7 @@ def test_values_map_exception_not_a_list():
 def test_values_map_exception_item_not_a_dict():
     vm = json.loads("""[["RESOURCE_NAME", [1211]]]""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Expected 'valuesMap' to contain objects."
@@ -56,7 +56,7 @@ def test_values_map_exception_item_not_a_dict():
 def test_values_map_exception_missing_type():
     vm = json.loads("""[{"values": [1211]}]""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Missing 'type' in values map schema."
@@ -65,7 +65,7 @@ def test_values_map_exception_missing_type():
 def test_values_map_exception_missing_values():
     vm = json.loads("""[{"type": "RESOURCE_NAME"}]""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Missing 'values' in values map schema for 'RESOURCE_NAME'."
@@ -74,7 +74,7 @@ def test_values_map_exception_missing_values():
 def test_values_map_exception_values_not_a_list():
     vm = json.loads("""[{"type": "RESOURCE_NAME", "values": 1211}]""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Expected 'values' for 'RESOURCE_NAME' to be an array."
@@ -83,7 +83,7 @@ def test_values_map_exception_values_not_a_list():
 def test_values_map_exception_unsupported_type():
     vm = json.loads("""[{"type": "UNSUPPORTED", "values": [{}]}]""")
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Unsupported type for 'UNSUPPORTED': '{}' in values map schema"
@@ -99,7 +99,7 @@ def test_values_map_exception_duplicate_value():
         """
     )
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         parse_values_map(vm)
 
     assert str(e.value) == "Duplicate type 'RESOURCE_NAME' in values map schema."

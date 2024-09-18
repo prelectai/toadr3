@@ -4,7 +4,7 @@ import aiohttp
 
 from .access_token import AccessToken
 from .event import Event
-from .exceptions import ToadrException
+from .exceptions import ToadrError
 
 
 class TargetType(Enum):
@@ -85,7 +85,7 @@ async def get_events(
     ------
     ValueError
         If the query parameters are invalid.
-    toadr3.ToadrException
+    toadr3.ToadrError
         If the request to the VTN fails.
     """
     if target_type is not None and target_values is None:
@@ -141,7 +141,7 @@ async def get_events(
                     if "detail" in json_response:
                         message = f"{message} - {json_response['detail']}"
 
-                    raise ToadrException(
+                    raise ToadrError(
                         message,
                         status_code=response.status,
                         reason=response.reason,

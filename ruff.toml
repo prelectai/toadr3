@@ -26,8 +26,8 @@ select = [
     "F",
     # isort
     "I",
-#    # pep8 naming
-#    "N",
+    # pep8 naming
+    "N",
     # use pathlib
     "PTH",
     # pie

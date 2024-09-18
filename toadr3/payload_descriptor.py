@@ -1,4 +1,4 @@
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 
 
 class PayloadDescriptor:
@@ -7,7 +7,7 @@ class PayloadDescriptor:
     def __init__(self, data: dict):
         """Create a payload descriptor object from parsed JSON data."""
         if "payloadType" not in data:
-            raise SchemaException("Missing 'payloadType' in payload descriptor schema.")
+            raise SchemaError("Missing 'payloadType' in payload descriptor schema.")
 
         self._payload_type = data["payloadType"]
         self._units: str | None = data.get("units", None)

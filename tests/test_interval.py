@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from toadr3 import Interval, SchemaException
+from toadr3 import Interval, SchemaError
 
 
 def test_interval():
@@ -67,7 +67,7 @@ def test_interval_exception_missing_id():
         """
     )
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         Interval(data)
     assert str(e.value) == "Missing 'id' in interval schema."
 
@@ -81,6 +81,6 @@ def test_interval_exception_missing_payloads():
         """
     )
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         Interval(data)
     assert str(e.value) == "Missing 'payloads' in interval schema."

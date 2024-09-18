@@ -3,7 +3,7 @@ import os
 
 import aiohttp
 
-from .exceptions import ToadrException
+from .exceptions import ToadrError
 
 
 class AccessToken:
@@ -98,7 +98,7 @@ async def acquire_access_token(
     ------
     ValueError
         If the `client_id` or `client_secret` are not provided and not available in the environment.
-    toadr3.ToadrException
+    toadr3.ToadrError
         If the request to the token provider fails.
     """
     if client_id is None:
@@ -126,7 +126,7 @@ async def acquire_access_token(
 
     async with session.post(token_url, data=credentials) as response:
         if response.status >= 400:
-            raise ToadrException(
+            raise ToadrError(
                 "Failed to acquire access token",
                 status_code=response.status,
                 reason=response.reason,

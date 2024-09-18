@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from toadr3 import ReportDescriptor, SchemaException
+from toadr3 import ReportDescriptor, SchemaError
 
 
 def test_report_descriptors():
@@ -70,7 +70,7 @@ def test_report_descriptors_exception_missing_payload_type():
         """
     )
 
-    with pytest.raises(SchemaException) as e:
+    with pytest.raises(SchemaError) as e:
         ReportDescriptor(data)
 
     assert str(e.value) == "Missing 'payloadType' in report descriptor schema."

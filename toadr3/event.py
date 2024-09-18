@@ -1,6 +1,6 @@
 import datetime
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 from .interval import Interval
 from .interval_period import IntervalPeriod
 from .payload_descriptor import PayloadDescriptor
@@ -16,13 +16,13 @@ class Event:
 
     def __init__(self, data: dict):
         if "objectType" in data and data["objectType"] != "EVENT":
-            raise SchemaException("Expected 'objectType' to be 'EVENT' in event schema.")
+            raise SchemaError("Expected 'objectType' to be 'EVENT' in event schema.")
 
         if "programID" not in data:
-            raise SchemaException("Missing 'programID' in event schema.")
+            raise SchemaError("Missing 'programID' in event schema.")
 
         if "intervals" not in data:
-            raise SchemaException("Missing 'intervals' in event schema.")
+            raise SchemaError("Missing 'intervals' in event schema.")
 
         self._id = data.get("id", None)
         self._program_id = data["programID"]
@@ -50,7 +50,7 @@ class Event:
                 self._priority = int(data["priority"])
             except ValueError as err:
                 msg = "Expected 'priority' to be an integer in event schema."
-                raise SchemaException(msg) from err
+                raise SchemaError(msg) from err
 
         if "targets" in data:
             self._targets = parse_values_map(data["targets"])

@@ -1,6 +1,6 @@
 import datetime
 
-from .exceptions import SchemaException
+from .exceptions import SchemaError
 from .interval import Interval
 from .interval_period import IntervalPeriod
 from .payload_descriptor import PayloadDescriptor
@@ -12,10 +12,10 @@ class ReportData:
     def __init__(self, data: dict):
         """Create a new report data object from parsed JSON data.."""
         if "resourceName" not in data:
-            raise SchemaException("Missing 'resourceName' in report data schema.")
+            raise SchemaError("Missing 'resourceName' in report data schema.")
 
         if "intervals" not in data:
-            raise SchemaException("Missing 'intervals' in report data schema.")
+            raise SchemaError("Missing 'intervals' in report data schema.")
 
         self._resource_name = data["resourceName"]
         self._intervals = [Interval(interval) for interval in data["intervals"]]
@@ -46,19 +46,19 @@ class Report:
     def __init__(self, data: dict):
         """Create a new report object from parsed JSON data."""
         if "objectType" in data and data["objectType"] != "REPORT":
-            raise SchemaException("Expected 'objectType' to be 'REPORT' in report data schema.")
+            raise SchemaError("Expected 'objectType' to be 'REPORT' in report data schema.")
 
         if "programID" not in data:
-            raise SchemaException("Missing 'programID' in report schema.")
+            raise SchemaError("Missing 'programID' in report schema.")
 
         if "eventID" not in data:
-            raise SchemaException("Missing 'eventID' in report schema.")
+            raise SchemaError("Missing 'eventID' in report schema.")
 
         if "clientName" not in data:
-            raise SchemaException("Missing 'clientName' in report schema.")
+            raise SchemaError("Missing 'clientName' in report schema.")
 
         if "resources" not in data:
-            raise SchemaException("Missing 'resources' in report schema.")
+            raise SchemaError("Missing 'resources' in report schema.")
 
         self._id = data.get("id", None)
         self._created = None

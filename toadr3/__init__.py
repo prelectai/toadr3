@@ -1,7 +1,7 @@
 from .access_token import AccessToken, acquire_access_token
 from .event import Event
 from .events import TargetType, get_events
-from .exceptions import SchemaException, ToadrException
+from .exceptions import SchemaError, ToadrError
 from .interval import Interval
 from .interval_period import IntervalPeriod
 from .iso_date import parse_iso8601_duration
@@ -16,8 +16,8 @@ __all__ = [
     "Event",
     "TargetType",
     "get_events",
-    "SchemaException",
-    "ToadrException",
+    "SchemaError",
+    "ToadrError",
     "Interval",
     "IntervalPeriod",
     "parse_iso8601_duration",

@@ -61,24 +61,24 @@ def test_report_default():
 
 
 def test_report_exception_program_id():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Report({"eventID": "67", "clientName": "TestYAC"})
     assert str(e.value) == "Missing 'programID' in report schema."
 
 
 def test_report_exception_event_id():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Report({"programID": "9", "clientName": "TestYAC"})
     assert str(e.value) == "Missing 'eventID' in report schema."
 
 
 def test_report_exception_client_name():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Report({"programID": "9", "eventID": "67"})
     assert str(e.value) == "Missing 'clientName' in report schema."
 
 
 def test_report_exception_resources():
-    with pytest.raises(toadr3.SchemaException) as e:
+    with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Report({"programID": "9", "eventID": "67", "clientName": "TestYAC"})
     assert str(e.value) == "Missing 'resources' in report schema."
