@@ -22,26 +22,26 @@ def test_expired_access_token():
 
 
 async def test_acquire_access_token_none_scope():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="scope is required"):
         _ = await acquire_access_token(
             None, "url", "grant_type", None, "client_id", "client_secret"
         )
 
 
 async def test_acquire_access_token_none_grant_type():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="grant_type is required"):
         _ = await acquire_access_token(None, "url", None, "scope", "client_id", "client_secret")
 
 
 async def test_acquire_access_token_missing_client_id(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("CLIENT_ID", raising=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="client_id is required"):
         _ = await acquire_access_token(None, "url", "grant_type", "scope", None, "client_secret")
 
 
 async def test_acquire_access_token_missing_client_secret(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("CLIENT_SECRET", raising=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="client_secret is required"):
         _ = await acquire_access_token(None, "url", "grant_type", "scope", "client_id", None)
 
 
@@ -49,12 +49,10 @@ async def test_acquire_access_token_client_id_and_secret_from_env(monkeypatch: p
     monkeypatch.setenv("CLIENT_ID", "env_id")
     monkeypatch.setenv("CLIENT_SECRET", "env_secret")
 
-    with pytest.raises(ValueError) as err:
-        _ = await acquire_access_token(None, "url", None, None)
-
     # check that the error message is about the missing grant_type
     # and not client_id or client_secret
-    assert str(err.value) == "grant_type is required"
+    with pytest.raises(ValueError, match="grant_type is required"):
+        _ = await acquire_access_token(None, "url", None, None)
 
 
 async def token_response(request: web.Request) -> web.Response:

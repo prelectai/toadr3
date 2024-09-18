@@ -10,54 +10,47 @@ from toadr3 import AccessToken, TargetType, ToadrError, get_events
 # Tests that do not need the event session or a token
 # ------------------------------------------------------------
 async def test_events_target_type_is_none():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "target_type is required when target_values are provided"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, target_values=["121"])
-
-    assert "target_type is required when target_values are provided" in str(exc_info.value)
 
 
 async def test_events_target_values_is_none():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "target_values are required when target_type is provided"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, target_type=TargetType.SERVICE_AREA)
-
-    assert "target_values are required when target_type is provided" in str(exc_info.value)
 
 
 async def test_events_target_values_not_list():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "target_values must be a list of strings"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(
             None, "", None, target_type=TargetType.SERVICE_AREA, target_values="121"
         )
 
-    assert "target_values must be a list of strings" in str(exc_info.value)
-
 
 async def test_events_skip_not_int():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "skip must be an integer"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, skip="0")
-
-    assert "skip must be an integer" in str(exc_info.value)
 
 
 async def test_events_skip_negative():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "skip must be a positive integer"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, skip=-1)
-
-    assert "skip must be a positive integer" in str(exc_info.value)
 
 
 async def test_events_limit_not_int():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "limit must be an integer"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, limit="0")
-
-    assert "limit must be an integer" in str(exc_info.value)
 
 
 async def test_events_limit_out_of_range_negative():
-    with pytest.raises(ValueError) as exc_info:
+    msg = "limit must be a positive integer"
+    with pytest.raises(ValueError, match=msg):
         _ = await get_events(None, "", None, limit=-1)
-
-    assert "limit must be a positive integer" in str(exc_info.value)
 
 
 # ------------------------------------------------------------
