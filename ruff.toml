@@ -47,6 +47,8 @@ select = [
     "Q",
     # return
     "RET",
+    # ruff specific rules
+    "RUF",
     # bandit
     "S",
     # self
