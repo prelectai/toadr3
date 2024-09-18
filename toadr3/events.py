@@ -106,7 +106,7 @@ async def get_events(
     if limit is not None and not isinstance(limit, int):
         raise ValueError("limit must be an integer")
 
-    if limit is not None and not 0 <= limit:
+    if limit is not None and not limit >= 0:
         raise ValueError("limit must be a positive integer")
 
     params = {}
