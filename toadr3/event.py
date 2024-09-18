@@ -48,8 +48,9 @@ class Event:
         if "priority" in data:
             try:
                 self._priority = int(data["priority"])
-            except ValueError:
-                raise SchemaException("Expected 'priority' to be an integer in event schema.")
+            except ValueError as err:
+                msg = "Expected 'priority' to be an integer in event schema."
+                raise SchemaException(msg) from err
 
         if "targets" in data:
             self._targets = parse_values_map(data["targets"])
