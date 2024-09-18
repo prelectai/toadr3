@@ -65,8 +65,8 @@ async def acquire_access_token(
     token_url: str,
     grant_type: str,
     scope: str,
-    client_id: str = None,
-    client_secret: str = None,
+    client_id: str | None = None,
+    client_secret: str | None = None,
 ) -> AccessToken:
     """Acquire an access token from the token provider.
 

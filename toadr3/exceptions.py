@@ -5,9 +5,9 @@ class ToadrError(Exception):
         self,
         message: str,
         status_code: int | str,
-        reason: str = None,
-        headers: dict = None,
-        json_response: dict = None,
+        reason: str | None = None,
+        headers: dict | None = None,
+        json_response: dict | None = None,
     ):
         self._message = message
 
