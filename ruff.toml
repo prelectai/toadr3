@@ -45,8 +45,8 @@ select = [
 #    "PLW",
     # quotes
     "Q",
-#    # return
-#    "RET",
+    # return
+    "RET",
     # bandit
     "S",
     # self
