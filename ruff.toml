@@ -22,8 +22,8 @@ select = [
     "E",
     # eradicate
     "ERA",
-#    # Pyflakes
-#    "F",
+    # Pyflakes
+    "F",
     # isort
     "I",
 #    # pep8 naming
