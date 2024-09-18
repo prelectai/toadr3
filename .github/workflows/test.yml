@@ -24,16 +24,11 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: 🐌 Check formatting with Black
-        run: poetry run black --check .
+      - name: 🐌 Check linting with ruff
+        run: poetry run ruff check --output-format=github
 
-      - name: 🐙 Check alphabetic import statements
-        run: |
-          poetry run isort --check-only toadr3/
-          poetry run isort --check-only tests/
-
-      - name: 🙉 Lint with flake8
-        run: poetry run flake8 --statistics --count
+      - name: 🐙 Check formatting
+        run: poetry run ruff format --check
 
       - name: 🐸 Run tests with pytest
         run: poetry run pytest tests/

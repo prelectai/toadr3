@@ -44,7 +44,6 @@ def parse_values_map(data: list) -> dict[str, Any]:
 
         result[item["type"]] = []
         for value in item["values"]:
-
             match value:
                 case bool() | float() | int() | str():
                     result[item["type"]].append(value)

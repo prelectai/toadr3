@@ -1,0 +1,99 @@
+line-length = 100
+
+[lint]
+select = [
+    # builtins
+    "A",
+    # annotations
+    "ANN",
+    # unused arguments
+    "ARG",
+    # async
+    "ASYNC",
+#    # flake8-bugbear
+#    "B",
+    # comprehensions
+    "C4",
+#    # pydocstyle
+#    "D",
+    # datetimez
+    "DTZ",
+    # pycodestyle
+    "E",
+    # eradicate
+    "ERA",
+#    # Pyflakes
+#    "F",
+    # isort
+    "I",
+#    # pep8 naming
+#    "N",
+    # use pathlib
+    "PTH",
+    # pie
+    "PIE",
+#    # pytest style
+#    "PT",
+    # Pylint
+    # - Convention
+#    "PLC",
+#    # - Error
+#    "PLE",
+#    # - Refactor
+#    "PLR",
+#    # - Warning
+#    "PLW",
+    # quotes
+    "Q",
+#    # return
+#    "RET",
+    # bandit
+    "S",
+    # self
+    "SLF",
+#    # simplify
+#    "SIM",
+    # slots
+    "SLOT",
+    # type check
+    "TCH",
+    # tidy imports
+    "TID",
+    # todos
+    "TD",
+    # pyupgrade
+    "UP",
+    # warning
+    "W",
+]
+
+ignore = [
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
+    "ANN204", # Missing return type annotation for special method `__init__`
+    "D100", # Missing docstring in public module
+    "PLR0913", # Too many arguments in function definition
+    "SIM910", # Use dict.get("key") instead of dict.get("key", None)
+]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[lint.per-file-ignores]
+"tests/*" = [
+    "D103", # Missing docstring in public function
+    "ANN201", # Missing return type annotation for public function
+    "S101", # Use of assert detected
+    "S105", # Possible hardcoded password assigned to...
+    "S106", # Possible hardcoded password assigned to argument...
+    "PLR2004", # Magic value used in comparison
+    "PLR0911", # Too many return statements
+    "PLR0913", # Too many arguments in function definition
+]
+"__init__.py" = [
+    "D104", # Missing docstring in public package
+]
+
+[lint.flake8-annotations]
+# Do not require functions without return statements to type hint "-> None"
+suppress-none-returning = true

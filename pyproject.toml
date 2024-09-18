@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toadr3"
-version = "0.5.0"
+version = "0.6.0"
 description = "Tiny OpenADR 3 compatible client Python Library"
 authors = ["Jean-Paul Balabanian <jean-paul.balabanian@eviny.no>"]
 license = "Apache-2.0"
@@ -13,24 +13,11 @@ aiohttp = "^3.10.5"
 aiodns = "^3.2.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.8.0"
-flake8 = "^7.1.1"
-isort = "^5.13.2"
+ruff = "^0.6.5"
 pytest = "^8.3.2"
-flake8-annotations = "^3.1.1"
-flake8-docstrings = "^1.7.0"
-pep8-naming = "^0.14.1"
 rich = "^13.7.1"
 pytest-aiohttp = "^1.0.5"
 pytest-asyncio = "^0.24.0"
-
-[tool.black]
-line-length = 100
-
-[tool.isort]
-profile = "black"
-line_length = 100
-multi_line_output = 3
 
 [tool.pytest.ini_options]
 pythonpath = [
