@@ -32,8 +32,8 @@ select = [
     "PTH",
     # pie
     "PIE",
-#    # pytest style
-#    "PT",
+    # pytest style
+    "PT",
     # Pylint
     # - Convention
 #    "PLC",

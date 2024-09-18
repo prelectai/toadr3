@@ -7,58 +7,51 @@ from toadr3 import parse_iso8601_duration
 td = datetime.timedelta
 
 
+def check_raises_value_error(duration: str):
+    match = f"Invalid ISO 8601 duration: {duration}"
+    with pytest.raises(ValueError, match=match):
+        print(parse_iso8601_duration(duration))
+
+
 def test_duration_parse_errors():
-    with pytest.raises(ValueError):
-        # year not supported
-        parse_iso8601_duration("P1Y")
+    # year not supported
+    check_raises_value_error("P1Y")
 
-    with pytest.raises(ValueError):
-        # month not supported
-        print(parse_iso8601_duration("P1M"))
+    # month not supported
+    check_raises_value_error("P1M")
 
-    with pytest.raises(ValueError):
-        # year and month not supported
-        parse_iso8601_duration("P3Y6M4DT12H30M5S")
+    # year and month not supported
+    check_raises_value_error("P3Y6M4DT12H30M5S")
 
-    with pytest.raises(ValueError):
-        # no fractional part for minutes
-        parse_iso8601_duration("PT1.5M")
+    # no fractional part for minutes
+    check_raises_value_error("PT1.5M")
 
-    with pytest.raises(ValueError):
-        # no fractional part for hours
-        parse_iso8601_duration("PT1.5H")
+    # no fractional part for hours
+    check_raises_value_error("PT1.5H")
 
-    with pytest.raises(ValueError):
-        # no T before W
-        parse_iso8601_duration("PT1W")
+    # no T before W
+    check_raises_value_error("PT1W")
 
-    with pytest.raises(ValueError):
-        # no T before D
-        parse_iso8601_duration("PT1D")
+    # no T before D
+    check_raises_value_error("PT1D")
 
-    with pytest.raises(ValueError):
-        # no duration values
-        parse_iso8601_duration("P")
+    # no duration values
+    check_raises_value_error("P")
 
-    with pytest.raises(ValueError):
-        # no duration values
-        parse_iso8601_duration("PT")
+    # no duration values
+    check_raises_value_error("PT")
 
-    with pytest.raises(ValueError):
-        # missing duration unit
-        parse_iso8601_duration("P1")
+    # missing duration unit
+    check_raises_value_error("P1")
 
-    with pytest.raises(ValueError):
-        # missing duration unit
-        parse_iso8601_duration("PT1")
+    # missing duration unit
+    check_raises_value_error("PT1")
 
-    with pytest.raises(ValueError):
-        # missing integer part
-        parse_iso8601_duration("PT.5S")
+    # missing integer part
+    check_raises_value_error("PT.5S")
 
-    with pytest.raises(ValueError):
-        # missing fractional part
-        parse_iso8601_duration("PT5.S")
+    # missing fractional part
+    check_raises_value_error("PT5.S")
 
 
 def test_duration_parse():
