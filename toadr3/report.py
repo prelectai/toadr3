@@ -7,8 +7,10 @@ from .payload_descriptor import PayloadDescriptor
 
 
 class ReportData:
+    """Report data for a resource."""
+
     def __init__(self, data: dict):
-        """Report data for a resource."""
+        """Create a new report data object from parsed JSON data.."""
         if "resourceName" not in data:
             raise SchemaException("Missing 'resourceName' in report data schema.")
 
@@ -39,7 +41,10 @@ class ReportData:
 
 
 class Report:
+    """Report object for a report."""
+
     def __init__(self, data: dict):
+        """Create a new report object from parsed JSON data."""
         if "objectType" in data and data["objectType"] != "REPORT":
             raise SchemaException("Expected 'objectType' to be 'REPORT' in report data schema.")
 

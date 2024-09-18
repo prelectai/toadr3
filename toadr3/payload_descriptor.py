@@ -2,7 +2,10 @@ from .exceptions import SchemaException
 
 
 class PayloadDescriptor:
+    """Payload descriptor object to describe the payload of an Event."""
+
     def __init__(self, data: dict):
+        """Create a payload descriptor object from parsed JSON data."""
         if "payloadType" not in data:
             raise SchemaException("Missing 'payloadType' in payload descriptor schema.")
 
