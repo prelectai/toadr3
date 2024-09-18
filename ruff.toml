@@ -10,8 +10,8 @@ select = [
     "ARG",
     # async
     "ASYNC",
-#    # flake8-bugbear
-#    "B",
+    # flake8-bugbear
+    "B",
     # comprehensions
     "C4",
 #    # pydocstyle

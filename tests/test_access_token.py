@@ -109,7 +109,7 @@ async def token_response(request: web.Request) -> web.Response:
                 return web.json_response(data=data, status=401)
             case _:
                 # unknown error
-                assert False, f"Unknown query: {grant_type}, {client_id}, {client_secret}, {scope}"
+                pytest.fail(f"Unknown query: {grant_type}, {client_id}, {client_secret}, {scope}")
 
 
 async def test_acquire_access_token(aiohttp_client: AiohttpClient):
