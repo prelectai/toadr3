@@ -88,41 +88,9 @@ async def get_events(
     toadr3.ToadrError
         If the request to the VTN fails.
     """
-    if target_type is not None and target_values is None:
-        raise ValueError("target_values are required when target_type is provided")
+    _check_arguments(target_type, target_values, skip, limit)
 
-    if target_values is not None and target_type is None:
-        raise ValueError("target_type is required when target_values are provided")
-
-    if target_values is not None and not isinstance(target_values, list):
-        raise ValueError("target_values must be a list of strings")
-
-    if skip is not None and not isinstance(skip, int):
-        raise ValueError("skip must be an integer")
-
-    if skip is not None and skip < 0:
-        raise ValueError("skip must be a positive integer")
-
-    if limit is not None and not isinstance(limit, int):
-        raise ValueError("limit must be an integer")
-
-    if limit is not None and not limit >= 0:
-        raise ValueError("limit must be a positive integer")
-
-    params = {}
-
-    if program_id is not None:
-        params["programID"] = program_id
-
-    if target_type is not None:
-        params["targetType"] = target_type.value
-        params["targetValues"] = target_values
-
-    if skip is not None:
-        params["skip"] = skip
-
-    if limit is not None:
-        params["limit"] = limit
+    params = _create_query_parameters(program_id, target_type, target_values, skip, limit)
 
     headers = {}
     if access_token is not None:
@@ -132,7 +100,8 @@ async def get_events(
         vtn_url = vtn_url[:-1]
 
     async with session.get(f"{vtn_url}/events", params=params, headers=headers) as response:
-        if response.status >= 400:
+        # 400 is start of HTTP error codes
+        if response.status >= 400:  # noqa PLR2004 - Magic value used in comparison
             match response.status:
                 case 400 | 403 | 500:
                     json_response = await response.json()  # JSON should be of type Problem schema
@@ -159,3 +128,89 @@ async def get_events(
         for event in data:
             result.append(Event(event))
         return result
+
+
+def _create_query_parameters(
+    program_id: int | None,
+    target_type: TargetType | None,
+    target_values: list[str] | None,
+    skip: int | None,
+    limit: int | None,
+) -> dict[str, int | str | list[str]]:
+    """Create the query parameters for the get_events function.
+
+    Parameters
+    ----------
+    program_id : int | None
+        The program ID to filter the events by.
+    target_type : TargetType | None
+        The target type to filter the events by.
+    target_values : list[str] | None
+        The target values to filter the events by (names of the target type).
+    skip : int | None
+        The number of events to skip (for pagination).
+    limit : int | None
+        The maximum number of events to return.
+    """
+    params = {}
+    if program_id is not None:
+        params["programID"] = program_id
+
+    if target_type is not None:
+        params["targetType"] = target_type.value
+        params["targetValues"] = target_values
+
+    if skip is not None:
+        params["skip"] = skip
+
+    if limit is not None:
+        params["limit"] = limit
+
+    return params
+
+
+def _check_arguments(
+    target_type: TargetType | None,
+    target_values: list[str] | None,
+    skip: int | None,
+    limit: int | None,
+):
+    """
+    Check the arguments for the get_events function.
+
+    Parameters
+    ----------
+    target_type : TargetType | None
+        The target type to filter the events by.
+    target_values : list[str] | None
+        The target values to filter the events by (names of the target type).
+    skip : int | None
+        The number of events to skip (for pagination).
+    limit : int | None
+        The maximum number of events to return.
+
+    Raises
+    ------
+    ValueError
+        If the query parameters are invalid.
+    """
+    if target_type is not None and target_values is None:
+        raise ValueError("target_values are required when target_type is provided")
+
+    if target_values is not None and target_type is None:
+        raise ValueError("target_type is required when target_values are provided")
+
+    if target_values is not None and not isinstance(target_values, list):
+        raise ValueError("target_values must be a list of strings")
+
+    if skip is not None and not isinstance(skip, int):
+        raise ValueError("skip must be an integer")
+
+    if skip is not None and skip < 0:
+        raise ValueError("skip must be a positive integer")
+
+    if limit is not None and not isinstance(limit, int):
+        raise ValueError("limit must be an integer")
+
+    if limit is not None and not limit >= 0:
+        raise ValueError("limit must be a positive integer")

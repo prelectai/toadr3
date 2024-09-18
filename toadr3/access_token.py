@@ -125,7 +125,8 @@ async def acquire_access_token(
     }
 
     async with session.post(token_url, data=credentials) as response:
-        if response.status >= 400:
+        # 400 is start of HTTP error codes
+        if response.status >= 400:  # noqa PLR2004 - Magic value used in comparison
             raise ToadrError(
                 "Failed to acquire access token",
                 status_code=response.status,
