@@ -5,7 +5,13 @@ from .iso_date import parse_iso8601_duration
 
 
 class IntervalPeriod:
+    """Interval period object.
+
+    Represents a period of time with a start time, duration, and randomize start time.
+    """
+
     def __init__(self, data: dict[str, str]):
+        """Create an interval period object from parsed JSON data."""
         if "start" not in data:
             raise SchemaException("Missing 'start' in interval period schema.")
 

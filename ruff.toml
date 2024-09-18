@@ -14,8 +14,8 @@ select = [
     "B",
     # comprehensions
     "C4",
-#    # pydocstyle
-#    "D",
+    # pydocstyle
+    "D",
     # datetimez
     "DTZ",
     # pycodestyle

@@ -6,7 +6,14 @@ from .values_map import parse_values_map
 
 
 class Interval:
+    """Interval object.
+
+    Has a payload for an IntervalPeriod. The IntervalPeriod is either local to the class or
+    available from the parent Event object.
+    """
+
     def __init__(self, data: dict):
+        """Create an interval object from parsed JSON data."""
         self._data = data
 
         if "id" not in data:

@@ -1,4 +1,6 @@
 class ToadrException(Exception):
+    """Exception raised for errors in the Toadr API."""
+
     def __init__(
         self,
         message: str,
@@ -44,6 +46,8 @@ class ToadrException(Exception):
 
 
 class SchemaException(Exception):
+    """Exception raised for schema errors in the Toadr API."""
+
     def __init__(self, message: str):
         self._message = message
 

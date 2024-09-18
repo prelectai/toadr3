@@ -7,6 +7,11 @@ from .exceptions import ToadrException
 
 
 class AccessToken:
+    """Access token object.
+
+    Enables tracking of expiration time and checking if the token is expired.
+    """
+
     def __init__(self, token: str, expires_in: int):
         """Initialize the access token with an expiration time in seconds.
 
