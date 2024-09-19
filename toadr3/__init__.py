@@ -1,13 +1,14 @@
 from .access_token import AccessToken, acquire_access_token
 from .event import Event
+from .event_payload_descriptor import EventPayloadDescriptor
 from .events import TargetType, get_events
 from .exceptions import SchemaError, ToadrError
 from .interval import Interval
 from .interval_period import IntervalPeriod
 from .iso_date import create_iso8601_duration, parse_iso8601_duration
-from .payload_descriptor import PayloadDescriptor
 from .report import Report, ReportData
 from .report_descriptor import ReportDescriptor
+from .report_payload_descriptor import ReportPayloadDescriptor
 from .values_map import parse_values_map
 
 __all__ = [
@@ -15,16 +16,17 @@ __all__ = [
     "acquire_access_token",
     "create_iso8601_duration",
     "Event",
-    "TargetType",
+    "EventPayloadDescriptor",
     "get_events",
-    "SchemaError",
-    "ToadrError",
     "Interval",
     "IntervalPeriod",
     "parse_iso8601_duration",
-    "PayloadDescriptor",
+    "parse_values_map",
     "Report",
     "ReportData",
     "ReportDescriptor",
-    "parse_values_map",
+    "ReportPayloadDescriptor",
+    "SchemaError",
+    "TargetType",
+    "ToadrError",
 ]

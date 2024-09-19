@@ -1,9 +1,9 @@
 import datetime
 
+from .event_payload_descriptor import EventPayloadDescriptor
 from .exceptions import SchemaError
 from .interval import Interval
 from .interval_period import IntervalPeriod
-from .payload_descriptor import PayloadDescriptor
 from .report_descriptor import ReportDescriptor
 from .values_map import parse_values_map
 
@@ -62,7 +62,7 @@ class Event:
 
         if "payloadDescriptors" in data:
             self._payload_descriptors = [
-                PayloadDescriptor(payload) for payload in data["payloadDescriptors"]
+                EventPayloadDescriptor(payload) for payload in data["payloadDescriptors"]
             ]
 
     @property
@@ -116,6 +116,6 @@ class Event:
         return self._report_descriptors
 
     @property
-    def payload_descriptors(self) -> list[PayloadDescriptor] | None:
+    def payload_descriptors(self) -> list[EventPayloadDescriptor] | None:
         """The payload descriptors of the event."""
         return self._payload_descriptors
