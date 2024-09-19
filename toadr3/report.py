@@ -3,7 +3,7 @@ import datetime
 from .exceptions import SchemaError
 from .interval import Interval
 from .interval_period import IntervalPeriod
-from .payload_descriptor import PayloadDescriptor
+from .report_payload_descriptor import ReportPayloadDescriptor
 
 
 class ReportData:
@@ -78,7 +78,7 @@ class Report:
 
         if "payloadDescriptors" in data:
             self._payload_descriptors = [
-                PayloadDescriptor(payload) for payload in data["payloadDescriptors"]
+                ReportPayloadDescriptor(payload) for payload in data["payloadDescriptors"]
             ]
 
     @property
@@ -117,7 +117,7 @@ class Report:
         return self._report_name
 
     @property
-    def payload_descriptors(self) -> list[PayloadDescriptor] | None:
+    def payload_descriptors(self) -> list[ReportPayloadDescriptor] | None:
         """The payload descriptors of the report."""
         return self._payload_descriptors
 
