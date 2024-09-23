@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from toadr3 import parse_iso8601_duration
+from toadr3.iso_date import create_iso8601_duration
 
 td = datetime.timedelta
 
@@ -124,3 +125,28 @@ def test_duration_parse_negative():
         days=-8, hours=-1, minutes=-1, seconds=-1
     )
     assert parse_iso8601_duration("-P-1W-1DT-1H-1M-1S") == td(days=8, hours=1, minutes=1, seconds=1)
+
+
+def test_duration_timedelta_to_duration():
+    assert create_iso8601_duration(td(days=7)) == "P1W"
+    assert create_iso8601_duration(td(days=-7)) == "-P1W"
+    assert create_iso8601_duration(td(days=1)) == "P1D"
+    assert create_iso8601_duration(td(days=-1)) == "-P1D"
+    assert create_iso8601_duration(td(hours=1)) == "PT1H"
+    assert create_iso8601_duration(td(hours=-1)) == "-PT1H"
+    assert create_iso8601_duration(td(minutes=1)) == "PT1M"
+    assert create_iso8601_duration(td(minutes=-1)) == "-PT1M"
+    assert create_iso8601_duration(td(seconds=1)) == "PT1S"
+    assert create_iso8601_duration(td(seconds=-1)) == "-PT1S"
+    assert create_iso8601_duration(td(milliseconds=500)) == "PT0.5S"
+    assert create_iso8601_duration(td(milliseconds=-500)) == "-PT0.5S"
+    assert create_iso8601_duration(td(microseconds=1)) == "PT0.000001S"
+    assert create_iso8601_duration(td(microseconds=-1)) == "-PT0.000001S"
+
+    time_delta = td(days=6, hours=12, minutes=30, seconds=5, milliseconds=758)
+    assert create_iso8601_duration(time_delta) == "P6DT12H30M5.758S"
+
+    time_delta = td(days=-6, hours=-12, minutes=-30, seconds=-5, milliseconds=-758)
+    assert create_iso8601_duration(time_delta) == "-P6DT12H30M5.758S"
+
+    assert create_iso8601_duration(td(hours=-1, minutes=1, seconds=1)) == "-PT58M59S"
