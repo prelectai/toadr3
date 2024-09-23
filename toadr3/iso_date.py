@@ -91,7 +91,7 @@ def create_iso8601_duration(delta: datetime.timedelta) -> str:
 
     if seconds != 0:
         if seconds.is_integer():
-            duration += f"{int(seconds):d}S"
+            duration += f"{int(seconds)}S"
         else:
             num = f"{seconds:f}".rstrip("0").rstrip(".")
             duration += f"{num}S"
