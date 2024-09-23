@@ -10,6 +10,7 @@ on:
 jobs:
   pypi-publish:
     name: Upload release to PyPI
+    if: github.repository == 'prelectai/toadr3'
     runs-on: ubuntu-latest
     permissions:
       contents: write
