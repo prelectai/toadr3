@@ -44,3 +44,55 @@ def parse_iso8601_duration(duration: str) -> datetime.timedelta:
         parts["days"] += parts.pop("weeks") * 7
 
     return datetime.timedelta(**parts)
+
+
+def create_iso8601_duration(delta: datetime.timedelta) -> str:
+    """Create an ISO 8601 duration string from a timedelta object.
+
+    If the timedelta is negative, the duration will be prefixed with a negative sign.
+
+    Parameters
+    ----------
+    delta : datetime.timedelta
+        The timedelta object to convert to an ISO 8601 duration string.
+
+    Returns
+    -------
+    str
+        The ISO 8601 duration string.
+    """
+    seconds = delta.total_seconds()
+
+    negative = ""
+    if seconds < 0:
+        negative = "-"
+        seconds = abs(seconds)
+
+    weeks, seconds = divmod(seconds, 7 * 24 * 3600)
+    days, seconds = divmod(seconds, 24 * 3600)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+
+    duration = f"{negative}P"
+    if weeks != 0:
+        duration += f"{int(weeks)}W"
+
+    if days != 0:
+        duration += f"{int(days)}D"
+
+    if hours != 0 or minutes != 0 or seconds != 0:
+        duration += "T"
+
+    if hours != 0:
+        duration += f"{int(hours)}H"
+
+    if minutes != 0:
+        duration += f"{int(minutes)}M"
+
+    if seconds != 0:
+        if seconds.is_integer():
+            duration += f"{int(seconds):d}S"
+        else:
+            num = f"{seconds:f}".rstrip("0").rstrip(".")
+            duration += f"{num}S"
+    return duration
