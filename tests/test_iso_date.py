@@ -143,6 +143,8 @@ def test_duration_timedelta_to_duration():
     assert create_iso8601_duration(td(microseconds=1)) == "PT0.000001S"
     assert create_iso8601_duration(td(microseconds=-1)) == "-PT0.000001S"
 
+    assert create_iso8601_duration(td(days=0)) == "PT0S"
+
     time_delta = td(days=6, hours=12, minutes=30, seconds=5, milliseconds=758)
     assert create_iso8601_duration(time_delta) == "P6DT12H30M5.758S"
 

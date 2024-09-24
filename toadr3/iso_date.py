@@ -63,6 +63,9 @@ def create_iso8601_duration(delta: datetime.timedelta) -> str:
     """
     seconds = delta.total_seconds()
 
+    if seconds == 0:
+        return "PT0S"
+
     negative = ""
     if seconds < 0:
         negative = "-"
