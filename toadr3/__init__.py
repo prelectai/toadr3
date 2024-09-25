@@ -9,6 +9,7 @@ from .iso_date import create_iso8601_duration, parse_iso8601_duration
 from .report import Report, ReportData
 from .report_descriptor import ReportDescriptor
 from .report_payload_descriptor import ReportPayloadDescriptor
+from .serializer import ToadrJSONEncoder, toadr_json_serializer
 from .values_map import parse_values_map
 
 __all__ = [
@@ -28,5 +29,7 @@ __all__ = [
     "ReportPayloadDescriptor",
     "SchemaError",
     "TargetType",
+    "ToadrJSONEncoder",
     "ToadrError",
+    "toadr_json_serializer",
 ]
