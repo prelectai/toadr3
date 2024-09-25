@@ -15,6 +15,9 @@ class IntervalPeriod:
         if "start" not in data:
             raise SchemaError("Missing 'start' in interval period schema.")
 
+        # TODO @jepebe: if there is no time zone data, the Program object may have a timeZoneOffset
+        #      that can be used to adjust the time to the correct timezone
+        #      https://github.com/prelectai/toadr3/issues/23
         self._start = datetime.datetime.fromisoformat(data["start"])
         self._duration = datetime.timedelta(seconds=0)
         self._randomize_start = datetime.timedelta(seconds=0)
