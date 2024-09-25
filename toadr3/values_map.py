@@ -3,7 +3,7 @@ from typing import Any
 from .exceptions import SchemaError
 
 
-def parse_values_map(data: list) -> dict[str, Any]:
+def parse_values_map(data: list) -> dict[str, list[Any]]:
     """Parse a values map object into a dictionary.
 
     The values map object is a list of objects, each with a 'type' and 'values' key.
@@ -19,7 +19,7 @@ def parse_values_map(data: list) -> dict[str, Any]:
 
     Returns
     -------
-    dict
+    dict[str, list[Any]]
         The parsed values map object as a dictionary.
     """
     if not isinstance(data, list):
