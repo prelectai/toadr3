@@ -15,9 +15,17 @@ operations towards a VTN.
 Currently, it supports the following operations:
 
 - List events
+  - Filter by program id
+  - Filter by target type and target values
+  - Limit and skip for pagination
+- List reports
+  - Filter by program id
+  - Filter by event id
+  - Filter by client name
+  - Limit and skip for pagination
 
 ## Example
-A small example of how to list events from a VTN:
+A small example of how to list events and reports from a VTN:
 
 ```python
 import asyncio
@@ -44,8 +52,10 @@ async def main():
         for event in events:
             print(f"Event ID: {event.id} - {event.event_name}")
 
+        reports = await toadr3.get_reports(session, VTN_URL, token)
+        for report in reports:
+            print(f"Report ID: {report.id} - {report.report_name}")
 
 if __name__ == '__main__':
     asyncio.run(main())
-
 ```

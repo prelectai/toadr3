@@ -9,6 +9,7 @@ from .iso_date import create_iso8601_duration, parse_iso8601_duration
 from .report import Report, ReportData
 from .report_descriptor import ReportDescriptor
 from .report_payload_descriptor import ReportPayloadDescriptor
+from .reports import get_reports
 from .serializer import ToadrJSONEncoder, toadr_json_serializer
 from .values_map import parse_values_map
 
@@ -19,6 +20,7 @@ __all__ = [
     "Event",
     "EventPayloadDescriptor",
     "get_events",
+    "get_reports",
     "Interval",
     "IntervalPeriod",
     "parse_iso8601_duration",
