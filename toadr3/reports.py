@@ -55,8 +55,7 @@ async def get_reports(
     if access_token is not None:
         headers["Authorization"] = f"Bearer {access_token.token}"
 
-    while vtn_url.endswith("/"):
-        vtn_url = vtn_url[:-1]
+    vtn_url = vtn_url.rstrip("/")
 
     async with session.get(f"{vtn_url}/reports", params=params, headers=headers) as response:
         # 400 is start of HTTP error codes
