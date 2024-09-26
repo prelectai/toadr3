@@ -58,8 +58,7 @@ async def get_reports(
     vtn_url = vtn_url.rstrip("/")
 
     async with session.get(f"{vtn_url}/reports", params=params, headers=headers) as response:
-        # 400 is start of HTTP error codes
-        if response.status >= 400:  # noqa PLR2004 - Magic value used in comparison
+        if not response.ok:
             match response.status:
                 case 400 | 403 | 500:
                     json_response = await response.json()  # JSON should be of type Problem schema
