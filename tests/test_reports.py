@@ -44,7 +44,7 @@ async def test_reports_multiple_errors():
 # Mostly the tests checks that the query parameters are
 # correctly passed to the request.
 # ------------------------------------------------------------
-async def reports_response_get(request: web.Request) -> web.Response:
+async def reports_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
 
     if auth is None:
@@ -59,39 +59,41 @@ async def reports_response_get(request: web.Request) -> web.Response:
     client_name = request.query.get("clientName", None)
     skip = request.query.get("skip", None)
     limit = request.query.get("limit", None)
+    x_parity = request.query.get("x-parity", None)
 
-    if skip is not None:
-        skip = int(skip)
-
-    if limit is not None:
-        limit = int(limit)
+    # Check if x-parity is valid here since it is not part of the API
+    if x_parity is not None and x_parity not in ["even", "odd"]:
+        raise ValueError(f"Invalid value for x-parity: {x_parity}")
 
     reports = create_reports()
-    match program_id, event_id, client_name, skip, limit:
-        case None, None, None, None, None:
-            return web.json_response(data=reports)
-        case pid, None, None, None, None:
-            data = [report for report in reports if report["programID"] == pid]
-            return web.json_response(data=data)
-        case None, eid, None, None, None:
-            data = [report for report in reports if report["eventID"] == eid]
-            return web.json_response(data=data)
-        case None, None, cname, None, None:
-            data = [report for report in reports if report["clientName"] == cname]
-            return web.json_response(data=data)
-        case None, None, None, skp, None:
-            return web.json_response(data=reports[skp:])
-        case None, None, None, None, lmt:
-            return web.json_response(data=reports[:lmt])
-        case _:
-            raise ValueError(f"Unexpected query parameters: {request.query}")
+
+    if program_id is not None:
+        reports = [report for report in reports if report["programID"] == program_id]
+
+    if event_id is not None:
+        reports = [report for report in reports if report["eventID"] == event_id]
+
+    if client_name is not None:
+        reports = [report for report in reports if report["clientName"] == client_name]
+
+    if skip is not None:
+        reports = reports[int(skip) :]
+
+    if limit is not None:
+        reports = reports[: int(limit)]
+
+    if x_parity is not None:
+        parity = 0 if x_parity == "even" else 1
+        reports = [report for report in reports if int(report["id"]) % 2 == parity]
+
+    return web.json_response(data=reports)
 
 
 @pytest.fixture
 async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
-    app.router.add_get("/reports", reports_response_get)
+    app.router.add_get("/reports", reports_get_response)
     return await aiohttp_client(app)
 
 
@@ -147,3 +149,23 @@ async def test_reports_with_limit(session: ClientSession, token: AccessToken):
 
     assert len(reports) == 2
     assert {report.id for report in reports} == {"99", "100"}
+
+
+async def test_reports_with_extra_query_parameters(session: ClientSession, token: AccessToken):
+    reports = await get_reports(session, "", token, extra_params={"x-parity": "even"})
+
+    assert len(reports) == 3
+    assert {report.id for report in reports} == {"100", "102", "104"}
+
+    reports = await get_reports(session, "", token, extra_params={"x-parity": "odd"})
+    assert len(reports) == 4
+    assert {report.id for report in reports} == {"99", "101", "103", "105"}
+
+
+async def test_reports_extra_query_params_does_not_overwrite(
+    session: ClientSession, token: AccessToken
+):
+    reports = await get_reports(session, "", token, program_id="3", extra_params={"programID": "1"})
+
+    assert len(reports) == 3
+    assert {report.id for report in reports} == {"103", "104", "105"}
