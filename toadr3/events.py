@@ -51,6 +51,7 @@ async def get_events(
     target_values: list[str] | None = None,
     skip: int | None = None,
     limit: int | None = None,
+    extra_params: dict[str, str | int] | None = None,
 ) -> list[Event]:
     """Get a list of events from the VTN.
 
@@ -75,6 +76,8 @@ async def get_events(
         The number of events to skip (for pagination).
     limit : int | None
         The maximum number of events to return.
+    extra_params : dict[str, str | int] | None
+        Extra query parameters to include in the request.
 
     Returns
     -------
@@ -91,6 +94,10 @@ async def get_events(
     _check_arguments(target_type, target_values, skip, limit)
 
     params = _create_query_parameters(program_id, target_type, target_values, skip, limit)
+
+    if extra_params is not None:
+        # we don't want extra_params to overwrite the existing params
+        params = extra_params | params
 
     headers = {}
     if access_token is not None:

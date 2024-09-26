@@ -44,7 +44,20 @@ def create_event(**kwargs: str | int) -> dict[str, Any]:
     for key, value in kwargs.items():
         if key in event:
             event[key] = value
+        # hack to set the resource name
+        if key == "resource_name":
+            event["targets"][0]["values"] = [value]
     return event
+
+
+def create_events() -> list[dict[str, Any]]:
+    return [
+        create_event(id="37", programID="34", eventName="testEvent", resource_name="1211"),
+        create_event(id="38", programID="35", eventName="testEvent", resource_name="1212"),
+        create_event(id="39", programID="34", eventName="powerLimit", resource_name="1213"),
+        create_event(id="40", programID="35", eventName="powerLimit", resource_name="1211"),
+        create_event(id="41", programID="34", eventName="powerLimit", resource_name="1212"),
+    ]
 
 
 def create_report(**kwargs: str | int) -> dict[str, Any]:

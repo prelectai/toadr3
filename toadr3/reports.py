@@ -14,6 +14,7 @@ async def get_reports(
     client_name: str | None = None,
     skip: int | None = None,
     limit: int | None = None,
+    extra_params: dict[str, str | int] | None = None,
 ) -> list[Report]:
     """Get a list of reports from the VTN.
 
@@ -35,6 +36,8 @@ async def get_reports(
         The number of reports to skip (for pagination).
     limit : int | None
         The maximum number of reports to return.
+    extra_params : dict[str, str | int] | None
+        Extra query parameters to include in the request.
 
     Returns
     -------
@@ -50,6 +53,10 @@ async def get_reports(
     """
     _check_arguments(skip, limit)
     params = _create_query_parameters(program_id, event_id, client_name, skip, limit)
+
+    if extra_params is not None:
+        # we don't want extra_params to overwrite the existing params
+        params = extra_params | params
 
     headers = {}
     if access_token is not None:
