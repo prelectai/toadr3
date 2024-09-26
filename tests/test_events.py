@@ -53,6 +53,12 @@ async def test_events_limit_out_of_range_negative():
         _ = await get_events(None, "", None, limit=-1)
 
 
+async def test_events_multiple_errors():
+    msg = "target_values are required when target_type is provided, skip must be a positive integer"
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_events(None, "", None, target_type=TargetType.SERVICE_AREA, skip=-1)
+
+
 # ------------------------------------------------------------
 # Tests that need the event session and a token
 # ------------------------------------------------------------

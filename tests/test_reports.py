@@ -33,6 +33,12 @@ async def test_reports_limit_out_of_range_negative():
         _ = await get_reports(None, "", None, limit=-1)
 
 
+async def test_reports_multiple_errors():
+    msg = "skip must be a positive integer, limit must be an integer"
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_reports(None, "", None, skip=-1, limit="9")
+
+
 # ------------------------------------------------------------
 # Tests that need the report session and a token.
 # Mostly the tests checks that the query parameters are
