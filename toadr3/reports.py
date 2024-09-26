@@ -139,14 +139,18 @@ def _check_arguments(skip: int | None, limit: int | None):
     ValueError
         If the query parameters are invalid.
     """
+    errors = []
     if skip is not None and not isinstance(skip, int):
-        raise ValueError("skip must be an integer")
+        errors.append("skip must be an integer")
 
-    if skip is not None and skip < 0:
-        raise ValueError("skip must be a positive integer")
+    if skip is not None and isinstance(skip, int) and skip < 0:
+        errors.append("skip must be a positive integer")
 
     if limit is not None and not isinstance(limit, int):
-        raise ValueError("limit must be an integer")
+        errors.append("limit must be an integer")
 
-    if limit is not None and not limit >= 0:
-        raise ValueError("limit must be a positive integer")
+    if limit is not None and isinstance(limit, int) and limit < 0:
+        errors.append("limit must be a positive integer")
+
+    if errors:
+        raise ValueError(", ".join(errors))
