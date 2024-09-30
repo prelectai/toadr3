@@ -5,6 +5,70 @@ from .exceptions import ToadrError
 from .report import Report
 
 
+async def post_report(
+    session: aiohttp.ClientSession,
+    vtn_url: str,
+    access_token: AccessToken | None,
+    report: Report,
+) -> Report:
+    """Post a report to the VTN.
+
+    Parameters
+    ----------
+    session : aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    vtn_url : str
+        The URL of the VTN.
+    access_token : AccessToken | None
+        The access token to use for the request, use None if no token is required.
+    report : Report
+        The report object to post.
+
+    Returns
+    -------
+    Report
+        The report object returned by the VTN.
+
+    Raises
+    ------
+    toadr3.ToadrError
+        If the request to the VTN fails.
+    """
+    if report is None:
+        raise ValueError("report is required")
+
+    headers = {}
+    if access_token is not None:
+        headers["Authorization"] = f"Bearer {access_token.token}"
+
+    vtn_url = vtn_url.rstrip("/")
+
+    async with session.post(f"{vtn_url}/reports", headers=headers, json=report) as response:
+        if not response.ok:
+            match response.status:
+                case 400 | 403 | 409 | 500:
+                    json_response = await response.json()  # JSON should be of type Problem schema
+                    message = json_response["title"]
+
+                    if "detail" in json_response:
+                        message = f"{message} - {json_response['detail']}"
+
+                    raise ToadrError(
+                        message,
+                        status_code=response.status,
+                        reason=response.reason,
+                        headers=response.headers,
+                        json_response=json_response,
+                    )
+                case _:
+                    raise RuntimeError(
+                        f"Unexpected response status: {response.status} {response.reason}"
+                    )
+
+        data = await response.json()
+        return Report(data)
+
+
 async def get_reports(
     session: aiohttp.ClientSession,
     vtn_url: str,

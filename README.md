@@ -23,6 +23,7 @@ Currently, it supports the following operations:
   - Filter by event id
   - Filter by client name
   - Limit and skip for pagination
+- Create a report from an event
 
 ## Example
 A small example of how to list events and reports from a VTN:
@@ -42,20 +43,29 @@ VTN_URL = ""  # URL to the VTN
 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
-        token = await toadr3.acquire_access_token(
-            session, TOKEN_URL, GRANT_TYPE, SCOPE, CLIENT_ID, CLIENT_SECRET
-        )
+  async with aiohttp.ClientSession(json_serialize=toadr3.toadr_json_serialize) as session:
+    token = await toadr3.acquire_access_token(
+      session, TOKEN_URL, GRANT_TYPE, SCOPE, CLIENT_ID, CLIENT_SECRET
+    )
 
-        events = await toadr3.get_events(session, VTN_URL, token)
+    events = await toadr3.get_events(session, VTN_URL, token)
 
-        for event in events:
-            print(f"Event ID: {event.id} - {event.event_name}")
+    for event in events:
+      print(f"Event ID: {event.id} - {event.event_name}")
 
-        reports = await toadr3.get_reports(session, VTN_URL, token)
-        for report in reports:
-            print(f"Report ID: {report.id} - {report.report_name}")
+    reports = await toadr3.get_reports(session, VTN_URL, token)
+    for report in reports:
+      print(f"Report ID: {report.id} - {report.report_name}")
+
+    report = toadr3.create_report(
+      event=events[0],
+      client_name="client_name",
+      report_type="REPORT_TYPE",
+      report_values=[...],
+    )
+    result = await toadr3.post_report(session, VTN_URL, token, report)
+
 
 if __name__ == '__main__':
-    asyncio.run(main())
+  asyncio.run(main())
 ```
