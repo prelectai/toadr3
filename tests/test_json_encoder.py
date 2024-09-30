@@ -14,7 +14,7 @@ def test_json_encoder():
 
     result = toadr3.ToadrJSONEncoder().encode(data)
     assert result == '{"datetime": "2024-09-24T01:02:03+00:00", "timedelta": "P1DT2H"}'
-    assert result == toadr3.toadr_json_serializer(data)
+    assert result == toadr3.toadr_json_serialize(data)
 
 
 def test_json_encoder_interval_period():

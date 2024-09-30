@@ -6,17 +6,18 @@ from .exceptions import SchemaError, ToadrError
 from .interval import Interval
 from .interval_period import IntervalPeriod
 from .iso_date import create_iso8601_duration, parse_iso8601_duration
-from .report import Report, ReportData
+from .report import Report, ReportData, create_report
 from .report_descriptor import ReportDescriptor
 from .report_payload_descriptor import ReportPayloadDescriptor
-from .reports import get_reports
-from .serializer import ToadrJSONEncoder, toadr_json_serializer
+from .reports import get_reports, post_report
+from .serializer import ToadrJSONEncoder, toadr_json_serialize
 from .values_map import parse_values_map
 
 __all__ = [
     "AccessToken",
     "acquire_access_token",
     "create_iso8601_duration",
+    "create_report",
     "Event",
     "EventPayloadDescriptor",
     "get_events",
@@ -25,6 +26,7 @@ __all__ = [
     "IntervalPeriod",
     "parse_iso8601_duration",
     "parse_values_map",
+    "post_report",
     "Report",
     "ReportData",
     "ReportDescriptor",
@@ -33,5 +35,5 @@ __all__ = [
     "TargetType",
     "ToadrJSONEncoder",
     "ToadrError",
-    "toadr_json_serializer",
+    "toadr_json_serialize",
 ]

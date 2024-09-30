@@ -1,5 +1,7 @@
 import datetime
+from typing import Any
 
+from .event import Event
 from .exceptions import SchemaError
 from .interval import Interval
 from .interval_period import IntervalPeriod
@@ -10,7 +12,7 @@ class ReportData:
     """Report data for a resource."""
 
     def __init__(self, data: dict):
-        """Create a new report data object from parsed JSON data.."""
+        """Create a new report data object from parsed JSON data."""
         if "resourceName" not in data:
             raise SchemaError("Missing 'resourceName' in report data schema.")
 
@@ -125,3 +127,119 @@ class Report:
     def resources(self) -> list[ReportData]:
         """The resources of the report."""
         return self._resources
+
+
+def create_report(
+    event: Event,
+    client_name: str,
+    report_type: str,
+    report_values: list[Any],
+    report_name: str | None = None,
+) -> Report:
+    """Create a new report object.
+
+    This will create a single report object for the given event for the specific report types.
+    There are several assumptions made in this function:
+    1. You want/can only create a report for one report descriptor (at a time).
+    2. There is only one target the report applies to.
+    3. There is only one interval, and it is specified in an 'intervalPeriod' at the root level.
+
+    Parameters
+    ----------
+    event : Event
+        The event object to create the report for.
+    client_name : str
+        The client name for the report.
+    report_type : str
+        The report type for the report (payload type of one of report descriptors).
+    report_values : list[Any]
+        The report values for the report.
+    report_name : str, optional
+        The name for the report (for debugging).
+
+    Raises
+    ------
+    ValueError
+        For missing and invalid arguments.
+
+    Returns
+    -------
+    Report
+        The created report object.
+    """
+    if not client_name or not isinstance(client_name, str):
+        raise ValueError("client_name is required.")
+
+    if not report_type or not isinstance(report_type, str):
+        raise ValueError("report_type is required.")
+
+    if not report_values or not isinstance(report_values, list):
+        raise ValueError("report_values is required.")
+
+    if event.program_id is None:
+        raise ValueError("event must have a program ID.")
+
+    if event.id is None:
+        raise ValueError("event must have an ID.")
+
+    if event.interval_period is None:
+        raise ValueError("event must have an interval period.")
+
+    if "RESOURCE_NAME" not in event.targets:
+        raise ValueError("event does not have a target for RESOURCE_NAME.")
+
+    data = {
+        "objectType": "REPORT",
+        "programID": event.program_id,
+        "eventID": event.id,
+        "clientName": client_name,
+    }
+
+    if report_name is not None:
+        data["reportName"] = report_name
+
+    if event.report_descriptors is None or len(event.report_descriptors) == 0:
+        raise ValueError("event does not have any report_descriptors.")
+
+    report_descriptor = None
+    for rd in event.report_descriptors:
+        if rd.payload_type == report_type:
+            report_descriptor = rd
+            break
+
+    if report_descriptor is None:
+        raise ValueError(f"event does not have a report_descriptor for {report_type}.")
+
+    data["payloadDescriptors"] = [{"payloadType": report_type}]
+
+    data["resources"] = [
+        {
+            "resourceName": event.targets["RESOURCE_NAME"][0],
+            "intervalPeriod": _parse_interval_period(event.interval_period),
+            "intervals": [
+                {
+                    "id": 0,
+                    "payloads": [
+                        {
+                            "type": report_type,
+                            "values": report_values,
+                        }
+                    ],
+                }
+            ],
+        }
+    ]
+
+    return Report(data)
+
+
+def _parse_interval_period(interval_period: IntervalPeriod) -> dict[str, Any]:
+    """Convert the interval period to a JSON encodable python dict.
+
+    This uses the ToadrJSONEncoder to convert the IntervalPeriod object to a dict,
+    since the encoder functions returns dicts with JSON encodable types.
+    """
+    from .serializer import ToadrJSONEncoder  # imported here to avoid circular import
+
+    encoder = ToadrJSONEncoder()
+    return encoder.serialize_interval_period(interval_period)

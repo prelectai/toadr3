@@ -234,7 +234,7 @@ class ToadrJSONEncoder(json.JSONEncoder):
         return result
 
 
-def toadr_json_serializer(obj: object) -> str:
+def toadr_json_serialize(obj: object) -> str:
     """JSON serializer function for objects in the toadr3 library.
 
     Can be used in place of the json.dumps in aiohttp.ClientSession.
