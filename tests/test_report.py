@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-from testdata import create_report
+from testdata import create_event, create_report
 
 import toadr3
 
@@ -82,3 +82,72 @@ def test_report_exception_resources():
     with pytest.raises(toadr3.SchemaError) as e:
         toadr3.Report({"programID": "9", "eventID": "67", "clientName": "TestYAC"})
     assert str(e.value) == "Missing 'resources' in report schema."
+
+
+def test_report_create_report():
+    event = toadr3.Event(create_event())
+    report = toadr3.create_report(
+        event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["34"], report_name="Test Report"
+    )
+
+    assert report.client_name == "TestClient"
+    assert report.report_name == "Test Report"
+
+    assert report.event_id == "37"
+    assert report.program_id == "69"
+
+    assert report.payload_descriptors[0].payload_type == "POWER_LIMIT_ACKNOWLEDGEMENT"
+
+    assert report.resources[0].resource_name == 1211
+
+    assert report.resources[0].intervals[0].id == 0
+    assert report.resources[0].intervals[0].payloads == {"POWER_LIMIT_ACKNOWLEDGEMENT": ["34"]}
+
+    assert report.resources[0].interval_period.start == event.interval_period.start
+    assert report.resources[0].interval_period.duration == event.interval_period.duration
+
+
+@pytest.fixture
+def event():
+    return toadr3.Event(create_event())
+
+
+def test_report_create_report_error_no_client_name(event: toadr3.Event):
+    for client_name in [None, True, False, "", []]:
+        with pytest.raises(ValueError, match="client_name is required."):
+            toadr3.create_report(event, client_name, "TYPE", ["1"])
+
+
+def test_report_create_report_error_no_report_type(event: toadr3.Event):
+    for report_type in [None, True, False, "", []]:
+        with pytest.raises(ValueError, match="report_type is required."):
+            toadr3.create_report(event, "TestClient", report_type, ["1"])
+
+
+def test_report_create_report_error_no_report_values(event: toadr3.Event):
+    for report_values in [None, True, False, "", "abc", []]:
+        with pytest.raises(ValueError, match="report_values is required."):
+            toadr3.create_report(event, "TestClient", "TYPE", report_values)
+
+
+def test_report_create_report_error_missing_event_values(event: toadr3.Event):
+    attributes = [
+        ("_id", "an ID"),
+        ("_program_id", "a program ID"),
+        ("_interval_period", "an interval period"),
+    ]
+    for attribute, description in attributes:
+        old = getattr(event, attribute)
+        setattr(event, attribute, None)
+        with pytest.raises(ValueError, match=f"event must have {description}."):
+            toadr3.create_report(event, "TestClient", "TYPE", ["1"])
+
+        setattr(event, attribute, old)
+
+    event._report_descriptors = []  # noqa: SLF001 (access to a private attribute)
+    with pytest.raises(ValueError, match="event does not have any report_descriptors."):
+        toadr3.create_report(event, "TestClient", "TYPE", ["1"])
+
+    event.targets.pop("RESOURCE_NAME")
+    with pytest.raises(ValueError, match="event does not have a target for RESOURCE_NAME."):
+        toadr3.create_report(event, "TestClient", "TYPE", ["1"])
