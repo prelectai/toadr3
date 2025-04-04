@@ -2,19 +2,18 @@ import datetime
 
 import pytest
 
-from toadr3 import parse_iso8601_duration
-from toadr3.iso_date import create_iso8601_duration
+from toadr3.models.isoduration import create_iso8601_duration, parse_iso8601_duration
 
 td = datetime.timedelta
 
 
-def check_raises_value_error(duration: str):
+def check_raises_value_error(duration: str) -> None:
     match = f"Invalid ISO 8601 duration: {duration}"
     with pytest.raises(ValueError, match=match):
         print(parse_iso8601_duration(duration))
 
 
-def test_duration_parse_errors():
+def test_duration_parse_errors() -> None:
     # year not supported
     check_raises_value_error("P1Y")
 
@@ -55,7 +54,7 @@ def test_duration_parse_errors():
     check_raises_value_error("PT5.S")
 
 
-def test_duration_parse():
+def test_duration_parse() -> None:
     assert parse_iso8601_duration("P1W") == td(days=7)
     assert parse_iso8601_duration("P1D") == td(days=1)
     assert parse_iso8601_duration("PT1H") == td(hours=1)
@@ -75,7 +74,7 @@ def test_duration_parse():
     assert parse_iso8601_duration("PT1.5S") == td(seconds=1, milliseconds=500)
 
 
-def test_duration_parse_negative():
+def test_duration_parse_negative() -> None:
     assert parse_iso8601_duration("P-1D") == td(days=-1)
     assert parse_iso8601_duration("-P1D") == td(days=-1)
     assert parse_iso8601_duration("-P-1D") == td(days=1)
@@ -127,7 +126,7 @@ def test_duration_parse_negative():
     assert parse_iso8601_duration("-P-1W-1DT-1H-1M-1S") == td(days=8, hours=1, minutes=1, seconds=1)
 
 
-def test_duration_timedelta_to_duration():
+def test_duration_timedelta_to_duration() -> None:
     assert create_iso8601_duration(td(days=7)) == "P1W"
     assert create_iso8601_duration(td(days=-7)) == "-P1W"
     assert create_iso8601_duration(td(days=1)) == "P1D"

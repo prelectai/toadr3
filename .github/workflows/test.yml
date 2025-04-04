@@ -4,11 +4,11 @@ run-name: "Test, check and verify!"
 on: [ push, pull_request ]
 
 jobs:
-  Continous-Testing:
+  Continuous-Testing:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.11", "3.12" ]
+        python-version: [ "3.11", "3.12", "3.13" ]
 
     steps:
       - name: 😎 Checkout
@@ -29,6 +29,11 @@ jobs:
 
       - name: 🐙 Check formatting
         run: poetry run ruff format --check
+
+      - name: 🦋 Check type hints with mypy
+        run: |
+          poetry run mypy --config-file=pyproject.toml --warn-unused-configs --check-untyped-defs --strict toadr3/
+          poetry run mypy --config-file=pyproject.toml --warn-unused-configs --check-untyped-defs --strict tests/
 
       - name: 🐸 Run tests with pytest
         run: poetry run pytest tests/

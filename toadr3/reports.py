@@ -2,7 +2,7 @@ import aiohttp
 
 from .access_token import AccessToken
 from .exceptions import ToadrError
-from .report import Report
+from .models import Report
 
 
 async def post_report(
@@ -43,7 +43,9 @@ async def post_report(
 
     vtn_url = vtn_url.rstrip("/")
 
-    async with session.post(f"{vtn_url}/reports", headers=headers, json=report) as response:
+    data = report.model_dump_json(exclude_none=True, exclude_unset=True)
+
+    async with session.post(f"{vtn_url}/reports", headers=headers, data=data) as response:
         if not response.ok:
             match response.status:
                 case 400 | 403 | 409 | 500:
@@ -57,7 +59,7 @@ async def post_report(
                         message,
                         status_code=response.status,
                         reason=response.reason,
-                        headers=response.headers,
+                        headers=response.headers,  # type: ignore[arg-type]
                         json_response=json_response,
                     )
                 case _:
@@ -66,7 +68,7 @@ async def post_report(
                     )
 
         data = await response.json()
-        return Report(data)
+        return Report.model_validate(data)
 
 
 async def get_reports(
@@ -142,7 +144,7 @@ async def get_reports(
                         message,
                         status_code=response.status,
                         reason=response.reason,
-                        headers=response.headers,
+                        headers=response.headers,  # type: ignore[arg-type]
                         json_response=json_response,
                     )
                 case _:
@@ -153,8 +155,8 @@ async def get_reports(
         data = await response.json()
 
         result = []
-        for event in data:
-            result.append(Report(event))
+        for report in data:
+            result.append(Report.model_validate(report))
         return result
 
 
@@ -180,7 +182,7 @@ def _create_query_parameters(
     limit : int | None
         The maximum number of events to return.
     """
-    params = {}
+    params: dict[str, str | int] = {}
     if program_id is not None:
         params["programID"] = program_id
     if event_id is not None:
@@ -194,7 +196,7 @@ def _create_query_parameters(
     return params
 
 
-def _check_arguments(skip: int | None, limit: int | None):
+def _check_arguments(skip: int | None, limit: int | None) -> None:
     """
     Check the arguments for the get_events function.
 

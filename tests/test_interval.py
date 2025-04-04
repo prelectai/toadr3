@@ -2,11 +2,12 @@ import datetime
 import json
 
 import pytest
+from pydantic import ValidationError
 
-from toadr3 import Interval, SchemaError
+from toadr3.models import Interval, ValuesMap
 
 
-def test_interval():
+def test_interval() -> None:
     data = json.loads(
         """
         {
@@ -18,16 +19,16 @@ def test_interval():
         """
     )
 
-    interval = Interval(data)
+    interval = Interval.model_validate(data)
 
     assert interval.id == 0
     assert interval.has_interval_period() is False
     assert interval.interval_period is None
     assert len(interval.payloads) == 1
-    assert interval.payloads == {"CONSUMPTION_POWER_LIMIT": [1000]}
+    assert interval.payloads == [ValuesMap(type="CONSUMPTION_POWER_LIMIT", values=[1000])]
 
 
-def test_interval_with_interval_period():
+def test_interval_with_interval_period() -> None:
     data = json.loads(
         """
         {
@@ -44,19 +45,20 @@ def test_interval_with_interval_period():
         """
     )
 
-    interval = Interval(data)
+    interval = Interval.model_validate(data)
 
     assert interval.id == 9
     assert interval.has_interval_period() is True
     expected_start_time = datetime.datetime(2024, 8, 15, 10, tzinfo=datetime.timezone.utc)
+    assert interval.interval_period is not None
     assert interval.interval_period.start == expected_start_time
     assert interval.interval_period.duration == datetime.timedelta(minutes=15)
     assert interval.interval_period.randomize_start == datetime.timedelta(seconds=0)
     assert len(interval.payloads) == 1
-    assert interval.payloads == {"CONSUMPTION_POWER_LIMIT": [6969]}
+    assert interval.payloads == [ValuesMap(type="CONSUMPTION_POWER_LIMIT", values=[6969])]
 
 
-def test_interval_exception_missing_id():
+def test_interval_exception_missing_id() -> None:
     data = json.loads(
         """
         {
@@ -67,12 +69,11 @@ def test_interval_exception_missing_id():
         """
     )
 
-    with pytest.raises(SchemaError) as e:
-        Interval(data)
-    assert str(e.value) == "Missing 'id' in interval schema."
+    with pytest.raises(ValidationError):
+        Interval.model_validate(data)
 
 
-def test_interval_exception_missing_payloads():
+def test_interval_exception_missing_payloads() -> None:
     data = json.loads(
         """
         {
@@ -81,6 +82,22 @@ def test_interval_exception_missing_payloads():
         """
     )
 
-    with pytest.raises(SchemaError) as e:
-        Interval(data)
-    assert str(e.value) == "Missing 'payloads' in interval schema."
+    with pytest.raises(ValidationError):
+        Interval.model_validate(data)
+
+
+def test_interval_to_json() -> None:
+    json_data = (
+        '{"id":9,'
+        '"intervalPeriod":{'
+        '"start":"2024-08-15T10:00:00.001000Z",'
+        '"duration":"PT15M",'
+        '"randomizeStart":"PT5S"},'
+        '"payloads":[{"type":"CONSUMPTION_POWER_LIMIT","values":[34,35]}]'
+        "}"
+    )
+
+    interval = Interval.model_validate_json(json_data)
+
+    result = interval.model_dump_json()
+    assert result == json_data
