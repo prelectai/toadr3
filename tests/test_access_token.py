@@ -5,7 +5,7 @@ from aiohttp.pytest_plugin import AiohttpClient
 from toadr3 import AccessToken, ToadrError, acquire_access_token
 
 
-def test_valid_access_token():
+def test_valid_access_token() -> None:
     token = AccessToken("123", 3600)
     assert token.token == "123"
     assert token.expires_in <= 3600
@@ -14,54 +14,87 @@ def test_valid_access_token():
     assert repr(token).startswith("AccessToken(token='123', expires_in=")
 
 
-def test_expired_access_token():
+def test_expired_access_token() -> None:
     token = AccessToken("123", 59)
     assert token.token == "123"
     assert 0 < token.expires_in <= 59
     assert token.is_expired() is True
 
 
-async def test_acquire_access_token_none_scope():
+async def test_acquire_access_token_none_scope() -> None:
     with pytest.raises(ValueError, match="scope is required"):
         _ = await acquire_access_token(
-            None, "url", "grant_type", None, "client_id", "client_secret"
+            None,  # type: ignore[arg-type]
+            "url",
+            "grant_type",
+            None,  # type: ignore[arg-type]
+            "client_id",
+            "client_secret",
         )
 
 
-async def test_acquire_access_token_none_grant_type():
+async def test_acquire_access_token_none_grant_type() -> None:
     with pytest.raises(ValueError, match="grant_type is required"):
-        _ = await acquire_access_token(None, "url", None, "scope", "client_id", "client_secret")
+        _ = await acquire_access_token(
+            None,  # type: ignore[arg-type]
+            "url",
+            None,  # type: ignore[arg-type]
+            "scope",
+            "client_id",
+            "client_secret",
+        )
 
 
-async def test_acquire_access_token_missing_client_id(monkeypatch: pytest.MonkeyPatch):
+async def test_acquire_access_token_missing_client_id(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CLIENT_ID", raising=False)
     with pytest.raises(ValueError, match="client_id is required"):
-        _ = await acquire_access_token(None, "url", "grant_type", "scope", None, "client_secret")
+        _ = await acquire_access_token(
+            None,  # type: ignore[arg-type]
+            "url",
+            "grant_type",
+            "scope",
+            None,
+            "client_secret",
+        )
 
 
-async def test_acquire_access_token_missing_client_secret(monkeypatch: pytest.MonkeyPatch):
+async def test_acquire_access_token_missing_client_secret(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CLIENT_SECRET", raising=False)
     with pytest.raises(ValueError, match="client_secret is required"):
-        _ = await acquire_access_token(None, "url", "grant_type", "scope", "client_id", None)
+        _ = await acquire_access_token(
+            None,  # type: ignore[arg-type]
+            "url",
+            "grant_type",
+            "scope",
+            "client_id",
+            None,
+        )
 
 
-async def test_acquire_access_token_client_id_and_secret_from_env(monkeypatch: pytest.MonkeyPatch):
+async def test_acquire_access_token_client_id_and_secret_from_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("CLIENT_ID", "env_id")
     monkeypatch.setenv("CLIENT_SECRET", "env_secret")
 
     # check that the error message is about the missing grant_type
     # and not client_id or client_secret
     with pytest.raises(ValueError, match="grant_type is required"):
-        _ = await acquire_access_token(None, "url", None, None)
+        _ = await acquire_access_token(
+            None,  # type: ignore[arg-type]
+            "url",
+            None,  # type: ignore[arg-type]
+            None,  # type: ignore[arg-type]
+        )
 
 
 async def token_response(request: web.Request) -> web.Response:
     if request.method == "POST":
-        data = await request.post()
-        grant_type = data.get("grant_type")
-        client_id = data.get("client_id")
-        client_secret = data.get("client_secret")
-        scope = data.get("scope")
+        req_res = await request.post()
+        grant_type = req_res.get("grant_type")
+        client_id = req_res.get("client_id")
+        client_secret = req_res.get("client_secret")
+        scope = req_res.get("scope")
         # https://www.rfc-editor.org/rfc/rfc6749#section-5.2
         # invalid_request and invalid_grant are not tested here (yet)
         match grant_type, client_id, client_secret, scope:
@@ -107,17 +140,22 @@ async def token_response(request: web.Request) -> web.Response:
                 return web.json_response(data=data, status=401)
             case _:
                 # unknown error
-                pytest.fail(f"Unknown query: {grant_type}, {client_id}, {client_secret}, {scope}")
+                pytest.fail(f"Unknown query: {req_res!r}")
     raise UserWarning(f"Invalid request method: {request.method}")
 
 
-async def test_acquire_access_token(aiohttp_client: AiohttpClient):
+async def test_acquire_access_token(aiohttp_client: AiohttpClient) -> None:
     app = web.Application()
     app.router.add_post("/token", token_response)
     client = await aiohttp_client(app)
 
     access_token = await acquire_access_token(
-        client, "/token", "client_credentials", "scope", "client_id", "client_secret"
+        client,  # type: ignore[arg-type]
+        "/token",
+        "client_credentials",
+        "scope",
+        "client_id",
+        "client_secret",
     )
 
     assert access_token.token == "123"
@@ -134,14 +172,21 @@ async def check_acquire_access_token_error(
     client_secret: str,
     expected_status: int,
     expected_error: str,
-):
+) -> None:
     """Check that the acquire_access_token function raises the expected error."""
     app = web.Application()
     app.router.add_post("/token", token_response)
     client = await aiohttp_client(app)
 
     with pytest.raises(ToadrError) as e:
-        await acquire_access_token(client, "/token", grant_type, scope, client_id, client_secret)
+        await acquire_access_token(
+            client,  # type: ignore[arg-type]
+            "/token",
+            grant_type,
+            scope,
+            client_id,
+            client_secret,
+        )
 
     err: ToadrError = e.value
     assert err.message == "Failed to acquire access token"
@@ -150,7 +195,7 @@ async def check_acquire_access_token_error(
 
 
 @pytest.mark.asyncio
-async def test_acquire_access_token_grant_type_error(aiohttp_client: AiohttpClient):
+async def test_acquire_access_token_grant_type_error(aiohttp_client: AiohttpClient) -> None:
     await check_acquire_access_token_error(
         aiohttp_client,
         grant_type="wrong_credentials",
@@ -163,7 +208,7 @@ async def test_acquire_access_token_grant_type_error(aiohttp_client: AiohttpClie
 
 
 @pytest.mark.asyncio
-async def test_acquire_access_token_scope_error(aiohttp_client: AiohttpClient):
+async def test_acquire_access_token_scope_error(aiohttp_client: AiohttpClient) -> None:
     await check_acquire_access_token_error(
         aiohttp_client,
         grant_type="client_credentials",
@@ -176,7 +221,7 @@ async def test_acquire_access_token_scope_error(aiohttp_client: AiohttpClient):
 
 
 @pytest.mark.asyncio
-async def test_acquire_access_token_client_id_error(aiohttp_client: AiohttpClient):
+async def test_acquire_access_token_client_id_error(aiohttp_client: AiohttpClient) -> None:
     await check_acquire_access_token_error(
         aiohttp_client,
         grant_type="client_credentials",
@@ -189,7 +234,7 @@ async def test_acquire_access_token_client_id_error(aiohttp_client: AiohttpClien
 
 
 @pytest.mark.asyncio
-async def test_acquire_access_token_client_secret_error(aiohttp_client: AiohttpClient):
+async def test_acquire_access_token_client_secret_error(aiohttp_client: AiohttpClient) -> None:
     await check_acquire_access_token_error(
         aiohttp_client,
         grant_type="client_credentials",

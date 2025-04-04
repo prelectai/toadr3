@@ -1,13 +1,11 @@
-import json
-
 import pytest
+from pydantic import ValidationError
 
-from toadr3 import ReportPayloadDescriptor, SchemaError
+from toadr3.models import ReportPayloadDescriptor
 
 
-def test_report_payload_descriptor():
-    data = json.loads(
-        """
+def test_report_payload_descriptor() -> None:
+    data = """
         {
             "payloadType": "CONSUMPTION_POWER_LIMIT",
             "readingType": "DIRECT_READ",
@@ -16,9 +14,8 @@ def test_report_payload_descriptor():
             "confidence": 2
         }
         """
-    )
 
-    payload_descriptor = ReportPayloadDescriptor(data)
+    payload_descriptor = ReportPayloadDescriptor.model_validate_json(data)
 
     assert payload_descriptor.payload_type == "CONSUMPTION_POWER_LIMIT"
     assert payload_descriptor.reading_type == "DIRECT_READ"
@@ -27,10 +24,10 @@ def test_report_payload_descriptor():
     assert payload_descriptor.confidence == 2
 
 
-def test_report_payload_descriptor_defaults():
-    data = json.loads("""{"payloadType": "CONSUMPTION_POWER_LIMIT"}""")
+def test_report_payload_descriptor_defaults() -> None:
+    data = """{"payloadType": "CONSUMPTION_POWER_LIMIT"}"""
 
-    payload_descriptor = ReportPayloadDescriptor(data)
+    payload_descriptor = ReportPayloadDescriptor.model_validate_json(data)
 
     assert payload_descriptor.payload_type == "CONSUMPTION_POWER_LIMIT"
     assert payload_descriptor.units is None
@@ -39,42 +36,34 @@ def test_report_payload_descriptor_defaults():
     assert payload_descriptor.confidence is None
 
 
-def test_report_payload_descriptor_exception_missing_payload_type():
-    data = json.loads("""{"units": "KW"}""")
+def test_report_payload_descriptor_exception_missing_payload_type() -> None:
+    data = """{"units": "KW"}"""
 
-    with pytest.raises(SchemaError) as e:
-        ReportPayloadDescriptor(data)
-
-    assert str(e.value) == "Missing 'payloadType' in payload descriptor schema."
+    with pytest.raises(ValidationError):
+        ReportPayloadDescriptor.model_validate_json(data)
 
 
-def test_report_payload_descriptor_exception_invalid_object_type():
-    data = json.loads(
-        """
+def test_report_payload_descriptor_exception_invalid_object_type() -> None:
+    data = """
         {
             "objectType": "INVALID",
             "payloadType": "CONSUMPTION_POWER_LIMIT"
         }
         """
-    )
 
-    with pytest.raises(SchemaError) as e:
-        ReportPayloadDescriptor(data)
-
-    assert str(e.value) == "Invalid object type 'INVALID' for ReportPayloadDescriptor."
+    with pytest.raises(ValidationError):
+        ReportPayloadDescriptor.model_validate_json(data)
 
 
-def test_report_payload_descriptor_correct_object_type():
-    data = json.loads(
-        """
+def test_report_payload_descriptor_correct_object_type() -> None:
+    data = """
         {
             "objectType": "REPORT_PAYLOAD_DESCRIPTOR",
             "payloadType": "CONSUMPTION_POWER_LIMIT"
         }
         """
-    )
 
-    payload_descriptor = ReportPayloadDescriptor(data)
+    payload_descriptor = ReportPayloadDescriptor.model_validate_json(data)
 
     assert payload_descriptor.payload_type == "CONSUMPTION_POWER_LIMIT"
     assert payload_descriptor.units is None

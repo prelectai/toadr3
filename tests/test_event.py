@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from pydantic import ValidationError
 from testdata import create_event
 
 import toadr3
@@ -8,8 +9,8 @@ import toadr3
 UTC = datetime.timezone.utc
 
 
-def test_event():
-    event = toadr3.Event(create_event())
+def test_event() -> None:
+    event = toadr3.models.Event.model_validate(create_event())
 
     assert event.id == "37"
     assert event.created == datetime.datetime(2024, 8, 15, 8, 52, 55, 578000, tzinfo=UTC)
@@ -18,13 +19,19 @@ def test_event():
     assert event.event_name == "powerLimit"
     assert event.priority is None
 
+    assert event.targets is not None
     assert len(event.targets) == 2
-    assert event.targets == {"RESOURCE_NAME": [1211], "ORGANIZATION_ID": ["1337"]}
+    assert event.targets == [
+        toadr3.models.ValuesMap(type="RESOURCE_NAME", values=[1211]),
+        toadr3.models.ValuesMap(type="ORGANIZATION_ID", values=["1337"]),
+    ]
 
+    assert event.report_descriptors is not None
     assert len(event.report_descriptors) == 1
     report_descriptor = event.report_descriptors[0]
     assert report_descriptor.payload_type == "POWER_LIMIT_ACKNOWLEDGEMENT"
 
+    assert event.payload_descriptors is not None
     assert len(event.payload_descriptors) == 1
     payload_descriptor = event.payload_descriptors[0]
     assert payload_descriptor.payload_type == "CONSUMPTION_POWER_LIMIT"
@@ -39,19 +46,20 @@ def test_event():
     interval = event.intervals[0]
     assert not interval.has_interval_period()
     assert interval.id == 0
-    assert interval.payloads == {"CONSUMPTION_POWER_LIMIT": [1000]}
+    assert interval.payloads == [
+        toadr3.models.ValuesMap(type="CONSUMPTION_POWER_LIMIT", values=[1000])
+    ]
 
 
-def test_event_defaults():
-    event = toadr3.Event(
-        {
-            "objectType": "EVENT",
-            "programID": "69",
-            "intervals": [
-                {"id": 0, "payloads": [{"type": "CONSUMPTION_POWER_LIMIT", "values": [1000]}]}
-            ],
-        }
-    )
+def test_event_defaults() -> None:
+    data = {
+        "objectType": "EVENT",
+        "programID": "69",
+        "intervals": [
+            {"id": 0, "payloads": [{"type": "CONSUMPTION_POWER_LIMIT", "values": [1000]}]}
+        ],
+    }
+    event = toadr3.models.Event.model_validate(data)
 
     assert event.id is None
     assert event.created is None
@@ -68,16 +76,18 @@ def test_event_defaults():
     interval = event.intervals[0]
     assert not interval.has_interval_period()
     assert interval.id == 0
-    assert interval.payloads == {"CONSUMPTION_POWER_LIMIT": [1000]}
+    assert interval.payloads == [
+        toadr3.models.ValuesMap(type="CONSUMPTION_POWER_LIMIT", values=[1000])
+    ]
 
 
-def test_event_exception_program_id():
-    with pytest.raises(toadr3.SchemaError) as e:
-        toadr3.Event({"objectType": "EVENT", "intervals": [{"id": 0, "payloads": []}]})
-    assert str(e.value) == "Missing 'programID' in event schema."
+def test_event_exception_program_id() -> None:
+    with pytest.raises(ValidationError):
+        toadr3.models.Event.model_validate(
+            {"objectType": "EVENT", "intervals": [{"id": 0, "payloads": []}]}
+        )
 
 
-def test_event_exception_intervals():
-    with pytest.raises(toadr3.SchemaError) as e:
-        toadr3.Event({"objectType": "EVENT", "programID": "69"})
-    assert str(e.value) == "Missing 'intervals' in event schema."
+def test_event_exception_intervals() -> None:
+    with pytest.raises(ValidationError):
+        toadr3.models.Event.model_validate({"objectType": "EVENT", "programID": "69"})

@@ -5,13 +5,14 @@ from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
 from testdata import create_report
 
-from toadr3 import AccessToken, Report, ToadrError, post_report, toadr_json_serialize
+from toadr3 import AccessToken, ToadrError, post_report
+from toadr3.models import Report
 
 
-async def test_post_report_required():
+async def test_post_report_required() -> None:
     msg = "report is required"
     with pytest.raises(ValueError, match=msg):
-        _ = await post_report(None, "", None, None)
+        _ = await post_report(None, "", None, None)  # type: ignore[arg-type]
 
 
 # ------------------------------------------------------------
@@ -52,7 +53,7 @@ async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
     app.router.add_post("/reports", reports_post_response)
-    return await aiohttp_client(app, json_serialize=toadr_json_serialize)
+    return await aiohttp_client(app)  # type: ignore[return-value]
 
 
 @pytest.fixture
@@ -60,26 +61,26 @@ async def token() -> AccessToken:
     return AccessToken("token", 3600)
 
 
-async def test_post_report_forbidden(session: ClientSession):
-    report = Report(create_report())
+async def test_post_report_forbidden(session: ClientSession) -> None:
+    report = Report.model_validate(create_report())
     with pytest.raises(ToadrError) as exc_info:
         _ = await post_report(session, "", None, report)
 
     assert exc_info.value.message == "Forbidden"
 
 
-async def test_post_report_conflict(session: ClientSession, token: AccessToken):
+async def test_post_report_conflict(session: ClientSession, token: AccessToken) -> None:
     data = create_report()
     data["eventID"] = "35"
-    report = Report(data)
+    report = Report.model_validate(data)
 
     msg = "Conflict - The report already exists"
     with pytest.raises(ToadrError, match=msg):
         _ = await post_report(session, "", token, report)
 
 
-async def test_post_report(session: ClientSession, token: AccessToken):
-    report = Report(create_report())
+async def test_post_report(session: ClientSession, token: AccessToken) -> None:
+    report = Report.model_validate(create_report())
     result = await post_report(session, "", token, report)
 
     assert result.id == "123"

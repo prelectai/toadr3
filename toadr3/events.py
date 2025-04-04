@@ -3,8 +3,8 @@ from enum import Enum
 import aiohttp
 
 from .access_token import AccessToken
-from .event import Event
 from .exceptions import ToadrError
+from .models import Event
 
 
 class TargetType(Enum):
@@ -51,7 +51,7 @@ async def get_events(
     target_values: list[str] | None = None,
     skip: int | None = None,
     limit: int | None = None,
-    extra_params: dict[str, str | int] | None = None,
+    extra_params: dict[str, str | int | list[str]] | None = None,
 ) -> list[Event]:
     """Get a list of events from the VTN.
 
@@ -66,7 +66,7 @@ async def get_events(
         The URL of the VTN.
     access_token : AccessToken | None
         The access token to use for the request, use None if no token is required.
-    program_id : int | None
+    program_id : str | None
         The program ID to filter the events by.
     target_type : TargetType | None
         The target type to filter the events by.
@@ -76,7 +76,7 @@ async def get_events(
         The number of events to skip (for pagination).
     limit : int | None
         The maximum number of events to return.
-    extra_params : dict[str, str | int] | None
+    extra_params : dict[str, str | int | list[str]] | None
         Extra query parameters to include in the request.
 
     Returns
@@ -119,7 +119,7 @@ async def get_events(
                         message,
                         status_code=response.status,
                         reason=response.reason,
-                        headers=response.headers,
+                        headers=response.headers,  # type: ignore[arg-type]
                         json_response=json_response,
                     )
                 case _:
@@ -131,12 +131,12 @@ async def get_events(
 
         result = []
         for event in data:
-            result.append(Event(event))
+            result.append(Event.model_validate(event))
         return result
 
 
 def _create_query_parameters(
-    program_id: int | None,
+    program_id: str | None,
     target_type: TargetType | None,
     target_values: list[str] | None,
     skip: int | None,
@@ -157,11 +157,11 @@ def _create_query_parameters(
     limit : int | None
         The maximum number of events to return.
     """
-    params = {}
+    params: dict[str, int | str | list[str]] = {}
     if program_id is not None:
         params["programID"] = program_id
 
-    if target_type is not None:
+    if target_type is not None and target_values is not None:
         params["targetType"] = target_type.value
         params["targetValues"] = target_values
 
@@ -179,7 +179,7 @@ def _check_arguments(
     target_values: list[str] | None,
     skip: int | None,
     limit: int | None,
-):
+) -> None:
     """
     Check the arguments for the get_events function.
 

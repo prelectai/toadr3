@@ -36,7 +36,7 @@ class AccessToken:
         return self._token
 
     @property
-    def expires_at(self) -> datetime:
+    def expires_at(self) -> datetime.datetime:
         """The time in seconds until the token expires."""
         return self._expires_at
 
@@ -131,7 +131,7 @@ async def acquire_access_token(
                 "Failed to acquire access token",
                 status_code=response.status,
                 reason=response.reason,
-                headers=response.headers,
+                headers=response.headers,  # type: ignore[arg-type]
                 json_response=await response.json(),
             )
 

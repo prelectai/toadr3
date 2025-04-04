@@ -2,7 +2,7 @@ from typing import Any
 
 
 def create_event(**kwargs: str | int) -> dict[str, Any]:
-    event = {
+    event: dict[str, Any] = {
         "id": "37",
         "createdDateTime": "2024-08-15T08:52:55.578Z",
         "modificationDateTime": "2024-08-15T08:53:41.127Z",
@@ -61,7 +61,7 @@ def create_events() -> list[dict[str, Any]]:
 
 
 def create_report(**kwargs: str | int) -> dict[str, Any]:
-    report = {
+    report: dict[str, Any] = {
         "id": "19586",
         "createdDateTime": "2024-09-12T08:45:56.472Z",
         "modificationDateTime": "2024-09-12T08:46:56.472Z",
