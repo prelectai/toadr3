@@ -44,6 +44,7 @@ async def post_report(
     vtn_url = vtn_url.rstrip("/")
 
     data = report.model_dump_json(exclude_none=True, exclude_unset=True)
+    headers["Content-Type"] = "application/json"
 
     async with session.post(f"{vtn_url}/reports", headers=headers, data=data) as response:
         if not response.ok:
