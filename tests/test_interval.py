@@ -58,6 +58,44 @@ def test_interval_with_interval_period() -> None:
     assert interval.payloads == [ValuesMap(type="CONSUMPTION_POWER_LIMIT", values=[6969])]
 
 
+def test_interval_with_non_standard_duration() -> None:
+    data = """
+        {
+            "id": 9,
+            "payloads": [
+                    {"type": "CONSUMPTION_POWER_LIMIT", "values": [6969]}
+                ],
+            "intervalPeriod": {
+                "start": "2024-08-15T10:00:00.000Z",
+                "duration": "P9999Y"
+            }
+        }
+        """
+
+    interval = Interval.model_validate_json(data, context={"allow_P9999Y_duration": True})
+    assert interval.interval_period is not None
+    assert interval.interval_period.duration == datetime.timedelta(days=365 * 9999)
+
+
+def test_interval_with_non_standard_start_datetime() -> None:
+    data = """
+        {
+            "id": 9,
+            "payloads": [
+                    {"type": "CONSUMPTION_POWER_LIMIT", "values": [6969]}
+                ],
+            "intervalPeriod": {
+                "start": "0000-00-00"
+            }
+        }
+        """
+
+    default_value = datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
+    interval = Interval.model_validate_json(data, context={"0000-00-00": default_value})
+    assert interval.interval_period is not None
+    assert interval.interval_period.start == default_value
+
+
 def test_interval_exception_missing_id() -> None:
     data = json.loads(
         """
