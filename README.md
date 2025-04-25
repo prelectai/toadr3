@@ -4,6 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/toadr3)](https://pypi.python.org/pypi/toadr3)
 [![image](https://img.shields.io/pypi/l/toadr3.svg)](https://github.com/prelectai/toadr3/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
 # toadr3
 
@@ -43,7 +44,7 @@ VTN_URL = ""  # URL to the VTN
 
 
 async def main():
-  async with aiohttp.ClientSession(json_serialize=toadr3.toadr_json_serialize) as session:
+  async with aiohttp.ClientSession() as session:
     token = await toadr3.acquire_access_token(
       session, TOKEN_URL, GRANT_TYPE, SCOPE, CLIENT_ID, CLIENT_SECRET
     )
@@ -57,7 +58,7 @@ async def main():
     for report in reports:
       print(f"Report ID: {report.id} - {report.report_name}")
 
-    report = toadr3.create_report(
+    report = toadr3.models.Report.create_report(
       event=events[0],
       client_name="client_name",
       report_type="REPORT_TYPE",
