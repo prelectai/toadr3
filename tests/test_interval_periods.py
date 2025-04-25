@@ -3,6 +3,7 @@ import datetime
 import pytest
 from pydantic import ValidationError
 
+import toadr3
 from toadr3.models import IntervalPeriod
 
 td = datetime.timedelta
@@ -89,3 +90,31 @@ def test_interval_periods_sub_second_precision_in_json() -> None:
     assert result == (
         '{"start":"2024-09-24T01:02:03.123456Z","duration":"PT1H","randomizeStart":"PT30M"}'
     )
+
+
+def test_interval_periods_with_non_traditional_values() -> None:
+    # by default P9999Y is not allowed
+    data = '{"start":"2024-09-24","duration":"P9999Y"}'
+    with pytest.raises(ValidationError):
+        toadr3.models.IntervalPeriod.model_validate_json(data)
+
+    # check that P9999Y returns approximately 9999 years
+    ip = toadr3.models.IntervalPeriod.model_validate_json(
+        data, context={"allow_P9999Y_duration": True}
+    )
+    ip.duration = datetime.timedelta(days=365 * 9999)
+
+    # default for 0000-00-00 is to cause a ValidationError
+    data = '{"start":"0000-00-00"}'
+    with pytest.raises(ValidationError):
+        toadr3.models.IntervalPeriod.model_validate_json(data)
+
+    # check that 0000-00-00 is handled correctly
+    ip = toadr3.models.IntervalPeriod.model_validate_json(
+        data, context={"0000-00-00": datetime.datetime(2024, 9, 24, tzinfo=datetime.timezone.utc)}
+    )
+    assert ip.start == datetime.datetime(2024, 9, 24, tzinfo=datetime.timezone.utc)
+
+    # The default value for 0000-00-00 is not a datetime
+    with pytest.raises(ValidationError):
+        toadr3.models.IntervalPeriod.model_validate_json(data, context={"0000-00-00": "???"})
