@@ -74,6 +74,7 @@ class Report(DocstringBaseModel):
         report_type: str,
         report_values: list[Any],
         report_name: str | None = None,
+        target_type: str = "RESOURCE_NAME",
     ) -> "Report":
         """Create a new report object.
 
@@ -95,6 +96,8 @@ class Report(DocstringBaseModel):
             The report values for the report.
         report_name : str, optional
             The name for the report (for debugging).
+        target_type : str, optional
+            The type of target to look for, the default being "RESOURCE_NAME".
 
         Raises
         ------
@@ -117,12 +120,12 @@ class Report(DocstringBaseModel):
 
         found_resource_name = False
         for target in event.targets:
-            if target.type == "RESOURCE_NAME":
+            if target.type == target_type:
                 found_resource_name = True
                 break
 
         if not found_resource_name:
-            raise ValueError("event does not have a target for RESOURCE_NAME.")
+            raise ValueError(f"event does not have a target for type {target_type}.")
 
         if event.report_descriptors is None or len(event.report_descriptors) == 0:
             raise ValueError("event does not have any report_descriptors.")

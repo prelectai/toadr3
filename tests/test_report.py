@@ -151,5 +151,5 @@ def test_report_create_report_error_missing_event_values(event: Event) -> None:
 
     assert event.targets is not None
     event.targets.pop(0)  # Remove RESOURCE_NAME target
-    with pytest.raises(ValueError, match="event does not have a target for RESOURCE_NAME."):
+    with pytest.raises(ValueError, match="event does not have a target for type RESOURCE_NAME."):
         Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["1"])
