@@ -9,6 +9,7 @@ from .reportdata import ReportData
 from .reportdescriptor import ReportDescriptor
 from .reportpayloaddescriptor import ReportPayloadDescriptor
 from .subscription import Subscription
+from .targettype import TargetType
 from .valuesmap import Point, ValuesMap
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     "ReportDescriptor",
     "ReportPayloadDescriptor",
     "Subscription",
+    "TargetType",
     "ValuesMap",
 ]

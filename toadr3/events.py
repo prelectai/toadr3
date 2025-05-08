@@ -1,45 +1,8 @@
-from enum import Enum
-
 import aiohttp
 
 from .access_token import AccessToken
 from .exceptions import ToadrError
-from .models import Event
-
-
-class TargetType(Enum):
-    """Enumeration of target types."""
-
-    POWER_SERVICE_LOCATION = "POWER_SERVICE_LOCATION"
-    """
-    A Power Service Location is a utility named specific location in geography or
-    the distribution system, usually the point of service to a customer site.
-    """
-    SERVICE_AREA = "SERVICE_AREA"
-    """
-    A Service Area is a utility named geographic region.
-    Target values array contains a string representing a service area name.
-    """
-    GROUP = "GROUP"
-    """
-    Target values array contains a string representing a group.
-    """
-    RESOURCE_NAME = "RESOURCE_NAME"
-    """
-    Target values array contains a string representing a resource name.
-    """
-    VEN_NAME = "VEN_NAME"
-    """
-    Target values array contains a string representing a VEN name.
-    """
-    EVENT_NAME = "EVENT_NAME"
-    """
-    Target values array contains a string representing an event name.
-    """
-    PROGRAM_NAME = "PROGRAM_NAME"
-    """
-    Target values array contains a string representing a program name.
-    """
+from .models import Event, TargetType
 
 
 async def get_events(
@@ -47,7 +10,7 @@ async def get_events(
     vtn_url: str,
     access_token: AccessToken | None,
     program_id: str | None = None,
-    target_type: TargetType | None = None,
+    target_type: TargetType | str | None = None,
     target_values: list[str] | None = None,
     skip: int | None = None,
     limit: int | None = None,
@@ -68,7 +31,7 @@ async def get_events(
         The access token to use for the request, use None if no token is required.
     program_id : str | None
         The program ID to filter the events by.
-    target_type : TargetType | None
+    target_type : TargetType | str | None
         The target type to filter the events by.
     target_values : list[str] | None
         The target values to filter the events by (names of the target type).
@@ -137,7 +100,7 @@ async def get_events(
 
 def _create_query_parameters(
     program_id: str | None,
-    target_type: TargetType | None,
+    target_type: TargetType | str | None,
     target_values: list[str] | None,
     skip: int | None,
     limit: int | None,
@@ -148,7 +111,7 @@ def _create_query_parameters(
     ----------
     program_id : int | None
         The program ID to filter the events by.
-    target_type : TargetType | None
+    target_type : TargetType | str | None
         The target type to filter the events by.
     target_values : list[str] | None
         The target values to filter the events by (names of the target type).
@@ -162,7 +125,11 @@ def _create_query_parameters(
         params["programID"] = program_id
 
     if target_type is not None and target_values is not None:
-        params["targetType"] = target_type.value
+        if isinstance(target_type, TargetType):
+            params["targetType"] = target_type.value
+        else:
+            params["targetType"] = target_type  # should be string
+
         params["targetValues"] = target_values
 
     if skip is not None:
@@ -175,7 +142,7 @@ def _create_query_parameters(
 
 
 def _check_arguments(
-    target_type: TargetType | None,
+    target_type: TargetType | str | None,
     target_values: list[str] | None,
     skip: int | None,
     limit: int | None,
@@ -185,7 +152,7 @@ def _check_arguments(
 
     Parameters
     ----------
-    target_type : TargetType | None
+    target_type : TargetType | str | None
         The target type to filter the events by.
     target_values : list[str] | None
         The target values to filter the events by (names of the target type).
@@ -208,6 +175,9 @@ def _check_arguments(
 
     if target_values is not None and not isinstance(target_values, list):
         errors.append("target_values must be a list of strings")
+
+    if target_type is not None and not isinstance(target_type, (TargetType, str)):
+        errors.append("target_type must be TargetType or str")
 
     if skip is not None and not isinstance(skip, int):
         errors.append("skip must be an integer")

@@ -3,7 +3,7 @@ from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
 from testdata import create_events
 
-from toadr3 import AccessToken, TargetType, ToadrError, get_events
+from toadr3 import AccessToken, ToadrError, get_events, models
 
 
 # ------------------------------------------------------------
@@ -15,10 +15,16 @@ async def test_events_target_type_is_none() -> None:
         _ = await get_events(None, "", None, target_values=["121"])  # type: ignore[arg-type]
 
 
+async def test_events_target_type_is_not_str_or_target_type() -> None:
+    msg = "target_type must be TargetType or str"
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_events(None, "", None, target_type=1, target_values=["121"])  # type: ignore[arg-type]
+
+
 async def test_events_target_values_is_none() -> None:
     msg = "target_values are required when target_type is provided"
     with pytest.raises(ValueError, match=msg):
-        _ = await get_events(None, "", None, target_type=TargetType.SERVICE_AREA)  # type: ignore[arg-type]
+        _ = await get_events(None, "", None, target_type=models.TargetType.SERVICE_AREA)  # type: ignore[arg-type]
 
 
 async def test_events_target_values_not_list() -> None:
@@ -28,7 +34,7 @@ async def test_events_target_values_not_list() -> None:
             None,  # type: ignore[arg-type]
             "",
             None,
-            target_type=TargetType.SERVICE_AREA,
+            target_type=models.TargetType.SERVICE_AREA,
             target_values="121",  # type: ignore[arg-type]
         )
 
@@ -60,7 +66,7 @@ async def test_events_limit_out_of_range_negative() -> None:
 async def test_events_multiple_errors() -> None:
     msg = "target_values are required when target_type is provided, skip must be a positive integer"
     with pytest.raises(ValueError, match=msg):
-        _ = await get_events(None, "", None, target_type=TargetType.SERVICE_AREA, skip=-1)  # type: ignore[arg-type]
+        _ = await get_events(None, "", None, target_type=models.TargetType.SERVICE_AREA, skip=-1)  # type: ignore[arg-type]
 
 
 # ------------------------------------------------------------
@@ -166,7 +172,18 @@ async def test_events_with_limit(session: ClientSession, token: AccessToken) -> 
 
 async def test_events_with_target_values(session: ClientSession, token: AccessToken) -> None:
     events = await get_events(
-        session, "", token, target_type=TargetType.RESOURCE_NAME, target_values=["1211"]
+        session, "", token, target_type=models.TargetType.RESOURCE_NAME, target_values=["1211"]
+    )
+
+    assert len(events) == 2
+    assert {event.program_id for event in events} == {"34", "35"}
+
+
+async def test_events_with_target_values_and_str_target_type(
+    session: ClientSession, token: AccessToken
+) -> None:
+    events = await get_events(
+        session, "", token, target_type="RESOURCE_NAME", target_values=["1211"]
     )
 
     assert len(events) == 2

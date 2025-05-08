@@ -8,6 +8,7 @@ from .event import Event
 from .interval import Interval
 from .reportdata import ReportData
 from .reportpayloaddescriptor import ReportPayloadDescriptor
+from .targettype import TargetType
 from .valuesmap import ValuesMap
 
 
@@ -74,7 +75,7 @@ class Report(DocstringBaseModel):
         report_type: str,
         report_values: list[Any],
         report_name: str | None = None,
-        target_type: str = "RESOURCE_NAME",
+        target_type: TargetType | str = TargetType.RESOURCE_NAME,
     ) -> "Report":
         """Create a new report object.
 
@@ -96,8 +97,8 @@ class Report(DocstringBaseModel):
             The report values for the report.
         report_name : str, optional
             The name for the report (for debugging).
-        target_type : str, optional
-            The type of target to look for, the default being "RESOURCE_NAME".
+        target_type : TargetType | str, optional
+            The type of target to look for, the default being TargetType.RESOURCE_NAME.
 
         Raises
         ------
@@ -117,6 +118,9 @@ class Report(DocstringBaseModel):
 
         if event.targets is None or len(event.targets) == 0:
             raise ValueError("event does not have any targets.")
+
+        if isinstance(target_type, TargetType):
+            target_type = target_type.value
 
         found_resource_name = False
         for target in event.targets:
