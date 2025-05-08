@@ -15,16 +15,17 @@ operations towards a VTN.
 
 Currently, it supports the following operations:
 
-- List events
+- List events [GET]
   - Filter by program id
   - Filter by target type and target values
   - Limit and skip for pagination
-- List reports
+- List reports [GET]
   - Filter by program id
   - Filter by event id
   - Filter by client name
   - Limit and skip for pagination
-- Create a report from an event
+- Create a report [POST]
+- Create a report object based on an initial event
 
 ## Example
 A small example of how to list events and reports from a VTN:

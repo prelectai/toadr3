@@ -3,7 +3,7 @@ from enum import StrEnum
 from toadr3.models import DocstringBaseModel
 
 
-class ObjectTypes(StrEnum):
+class ObjectType(StrEnum):
     """Types of objects addressable through API."""
 
     EVENT = "EVENT"
@@ -14,7 +14,7 @@ class ObjectTypes(StrEnum):
     VEN = "VEN"
 
 
-class OperationTypes(StrEnum):
+class OperationType(StrEnum):
     """Object operation to subscribe to."""
 
     DELETE = "DELETE"
@@ -26,10 +26,10 @@ class OperationTypes(StrEnum):
 class ObjectOperation(DocstringBaseModel):
     """Object type, operations, and callbackUrl."""
 
-    objects: list[ObjectTypes]
+    objects: list[ObjectType]
     """List of objects to subscribe to."""
 
-    operations: list[OperationTypes]
+    operations: list[OperationType]
     """List of operations to subscribe to."""
 
     callback_url: str
