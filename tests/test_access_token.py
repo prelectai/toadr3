@@ -2,7 +2,7 @@ import pytest
 from aiohttp import web
 from aiohttp.pytest_plugin import AiohttpClient
 
-from toadr3 import AccessToken, ToadrError, acquire_access_token
+from toadr3 import AccessToken, OAuthConfig, ToadrError, acquire_access_token_from_config
 
 
 def test_valid_access_token() -> None:
@@ -23,51 +23,59 @@ def test_expired_access_token() -> None:
 
 async def test_acquire_access_token_none_scope() -> None:
     with pytest.raises(ValueError, match="scope is required"):
-        _ = await acquire_access_token(
+        _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            "url",
-            "grant_type",
-            None,  # type: ignore[arg-type]
-            "client_id",
-            "client_secret",
+            config=OAuthConfig(
+                "url",
+                "grant_type",
+                None,  # type: ignore[arg-type]
+                "client_id",
+                "client_secret",
+            ),
         )
 
 
 async def test_acquire_access_token_none_grant_type() -> None:
     with pytest.raises(ValueError, match="grant_type is required"):
-        _ = await acquire_access_token(
+        _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            "url",
-            None,  # type: ignore[arg-type]
-            "scope",
-            "client_id",
-            "client_secret",
+            config=OAuthConfig(
+                "url",
+                None,  # type: ignore[arg-type]
+                "scope",
+                "client_id",
+                "client_secret",
+            ),
         )
 
 
 async def test_acquire_access_token_missing_client_id(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CLIENT_ID", raising=False)
     with pytest.raises(ValueError, match="client_id is required"):
-        _ = await acquire_access_token(
+        _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            "url",
-            "grant_type",
-            "scope",
-            None,
-            "client_secret",
+            config=OAuthConfig(
+                "url",
+                "grant_type",
+                "scope",
+                None,
+                "client_secret",
+            ),
         )
 
 
 async def test_acquire_access_token_missing_client_secret(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CLIENT_SECRET", raising=False)
     with pytest.raises(ValueError, match="client_secret is required"):
-        _ = await acquire_access_token(
+        _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            "url",
-            "grant_type",
-            "scope",
-            "client_id",
-            None,
+            config=OAuthConfig(
+                "url",
+                "grant_type",
+                "scope",
+                "client_id",
+                None,
+            ),
         )
 
 
@@ -80,11 +88,13 @@ async def test_acquire_access_token_client_id_and_secret_from_env(
     # check that the error message is about the missing grant_type
     # and not client_id or client_secret
     with pytest.raises(ValueError, match="grant_type is required"):
-        _ = await acquire_access_token(
+        _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            "url",
-            None,  # type: ignore[arg-type]
-            None,  # type: ignore[arg-type]
+            config=OAuthConfig(
+                "url",
+                None,  # type: ignore[arg-type]
+                None,  # type: ignore[arg-type]
+            ),
         )
 
 
@@ -149,13 +159,15 @@ async def test_acquire_access_token(aiohttp_client: AiohttpClient) -> None:
     app.router.add_post("/token", token_response)
     client = await aiohttp_client(app)
 
-    access_token = await acquire_access_token(
+    access_token = await acquire_access_token_from_config(
         client,  # type: ignore[arg-type]
-        "/token",
-        "client_credentials",
-        "scope",
-        "client_id",
-        "client_secret",
+        config=OAuthConfig(
+            "/token",
+            "client_credentials",
+            "scope",
+            "client_id",
+            "client_secret",
+        ),
     )
 
     assert access_token.token == "123"
@@ -179,13 +191,15 @@ async def check_acquire_access_token_error(
     client = await aiohttp_client(app)
 
     with pytest.raises(ToadrError) as e:
-        await acquire_access_token(
+        await acquire_access_token_from_config(
             client,  # type: ignore[arg-type]
-            "/token",
-            grant_type,
-            scope,
-            client_id,
-            client_secret,
+            config=OAuthConfig(
+                "/token",
+                grant_type,
+                scope,
+                client_id,
+                client_secret,
+            ),
         )
 
     err: ToadrError = e.value

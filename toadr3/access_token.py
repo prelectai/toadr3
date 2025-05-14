@@ -6,6 +6,69 @@ import aiohttp
 from .exceptions import ToadrError
 
 
+class OAuthConfig:
+    """Model encapsulating values required for authorization."""
+
+    def __init__(
+        self,
+        token_url: str,
+        grant_type: str,
+        scope: str,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+    ) -> None:
+        """Encapsulate configuration required for authorization.
+
+        `client_id` and `client_secret` can be None if they are available
+        in the environment as CLIENT_ID and CLIENT_SECRET.
+
+        Parameters
+        ----------
+        session : aiohttp.ClientSession
+            The aiohttp session to use for the request.
+        token_url : str
+            The URL to acquire the token from.
+        grant_type : str
+            The grant type to use for the token request.
+        scope : str
+            The scope of the token.
+        client_id : str | None
+            The client ID or None if acquirable from the environment as CLIENT_ID.
+        client_secret : str | None
+            The client secret or None if acquirable from the environment as CLIENT_SECRET.
+        """
+        self._token_url = token_url
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._grant_type = grant_type
+        self._scope = scope
+
+    @property
+    def url(self) -> str:
+        """URL to the OAuth server."""
+        return self._token_url
+
+    @property
+    def client_id(self) -> str | None:
+        """Client ID."""
+        return self._client_id
+
+    @property
+    def client_secret(self) -> str | None:
+        """Client secret."""
+        return self._client_secret
+
+    @property
+    def grant_type(self) -> str:
+        """Grant type."""
+        return self._grant_type
+
+    @property
+    def scope(self) -> str:
+        """Scope."""
+        return self._scope
+
+
 class AccessToken:
     """Access token object.
 
@@ -58,6 +121,39 @@ class AccessToken:
     def __repr__(self) -> str:
         """Return a string representation of the access token."""
         return f"AccessToken(token='{self.token}', expires_in={self.expires_in})"
+
+
+async def acquire_access_token_from_config(
+    session: aiohttp.ClientSession, config: OAuthConfig
+) -> AccessToken:
+    """Acquire an access token from the token provider.
+
+    Connect to the token provider and acquire an access token. The access token will be returned
+    as an AccessToken object. `client_id` and `client_secret` can be None if they are available
+    in the environment as CLIENT_ID and CLIENT_SECRET.
+
+    Parameters
+    ----------
+    session : aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    config: OAuthConfig
+        The configuration object required to acquire an access token.
+
+    Returns
+    -------
+    AccessToken
+        The access token object.
+
+    Raises
+    ------
+    ValueError
+        If the `client_id` or `client_secret` are not provided and not available in the environment.
+    toadr3.ToadrError
+        If the request to the token provider fails.
+    """
+    return await acquire_access_token(
+        session, config.url, config.grant_type, config.scope, config.client_id, config.client_secret
+    )
 
 
 async def acquire_access_token(
