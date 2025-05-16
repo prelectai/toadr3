@@ -5,6 +5,7 @@ from .access_token import (
     acquire_access_token,
     acquire_access_token_from_config,
 )
+from .client import ToadrClient
 from .events import get_events
 from .exceptions import ToadrError
 from .reports import get_reports, post_report
@@ -12,6 +13,7 @@ from .reports import get_reports, post_report
 __all__ = [
     "AccessToken",
     "OAuthConfig",
+    "ToadrClient",
     "ToadrError",
     "acquire_access_token",
     "acquire_access_token_from_config",
