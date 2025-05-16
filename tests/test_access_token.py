@@ -203,7 +203,8 @@ async def check_acquire_access_token_error(
         )
 
     err: ToadrError = e.value
-    assert err.message == "Failed to acquire access token"
+    message = "Failed to acquire access token: " + err.json_response["error"]
+    assert err.message == message
     assert err.status_code == expected_status
     assert err.json_response["error"] == expected_error
 

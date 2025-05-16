@@ -2,6 +2,7 @@ import datetime
 import os
 
 import aiohttp
+from aiohttp import ClientResponse
 
 from .exceptions import ToadrError
 
@@ -221,15 +222,27 @@ async def acquire_access_token(
     }
 
     async with session.post(token_url, data=credentials) as response:
-        # 400 is start of HTTP error codes
+        # 400 is the start of HTTP error codes
         if response.status >= 400:  # noqa PLR2004 - Magic value used in comparison
-            raise ToadrError(
-                "Failed to acquire access token",
-                status_code=response.status,
-                reason=response.reason,
-                headers=response.headers,  # type: ignore[arg-type]
-                json_response=await response.json(),
-            )
+            await _process_error(response)  # will raise a ToadrError
 
         data = await response.json()
         return AccessToken(data["access_token"], data["expires_in"])
+
+
+async def _process_error(response: ClientResponse) -> None:
+    message = "Failed to acquire access token: "
+    json = await response.json()
+
+    if "error" in json:
+        message += json["error"]
+    else:
+        message += json
+
+    raise ToadrError(
+        message,
+        status_code=response.status,
+        reason=response.reason,
+        headers=response.headers,  # type: ignore[arg-type]
+        json_response=json,
+    )
