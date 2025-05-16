@@ -28,6 +28,9 @@ class ToadrError(Exception):
             json_response = {}
         self._json_response = json_response
 
+        if "error_description" in self._json_response:
+            self.add_note(self._json_response["error_description"])
+
     @property
     def message(self) -> str:
         """A short description of the exception."""
