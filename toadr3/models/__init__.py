@@ -4,6 +4,7 @@ from .eventpayloaddescriptor import EventPayloadDescriptor
 from .interval import Interval
 from .intervalperiod import IntervalPeriod
 from .objectoperation import ObjectOperation, ObjectType, OperationType
+from .problem import Problem
 from .report import Report
 from .reportdata import ReportData
 from .reportdescriptor import ReportDescriptor
@@ -21,6 +22,7 @@ __all__ = [
     "ObjectOperation",
     "ObjectType",
     "OperationType",
+    "Problem",
     "Point",
     "Report",
     "ReportData",
