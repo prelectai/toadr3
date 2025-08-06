@@ -48,7 +48,7 @@ async def test_token_unsupported_grant_type(client: toadr3.ToadrClient) -> None:
 
 async def test_token_scope_error(client: toadr3.ToadrClient) -> None:
     assert client._oauth_config is not None  # noqa: SLF001
-    client._oauth_config._scope = "wrong_scope"  # noqa: SLF001
+    client._oauth_config._claims["scope"] = "wrong_scope"  # noqa: SLF001
 
     with pytest.raises(toadr3.ToadrError, match="invalid_scope") as exc:
         await client.token

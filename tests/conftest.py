@@ -6,7 +6,7 @@ from aiohttp import web
 from aiohttp.pytest_plugin import AiohttpClient
 from mock_vtn_server import MockVTNServer
 
-from toadr3 import OAuthConfig, ToadrClient
+from toadr3 import OAuthScopeConfig, ToadrClient
 
 
 async def _exception_wrapper(
@@ -49,7 +49,7 @@ async def client(aiohttp_client: AiohttpClient) -> ToadrClient:
 
     session = await aiohttp_client(app)
 
-    oauth_config = OAuthConfig(
+    oauth_config = OAuthScopeConfig(
         token_url="/oauth_url/token_endpoint",
         grant_type="client_credentials",
         scope="test_scope",
