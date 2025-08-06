@@ -37,7 +37,7 @@ import toadr3
 
 TOKEN_URL = ""  # URL to the OAuth2 token endpoint
 GRANT_TYPE = ""  # OAuth2 grant type
-SCOPE = ""  # OAuth2 scope
+CLAIMS = {"scope": ""}  # OAuth2 claims, e.g. {"scope": "read write"}
 CLIENT_ID = ""  # OAuth2 client ID or set to None use environment variable
 CLIENT_SECRET = ""  # OAuth2 client secret or set to None use environment variable
 
@@ -47,7 +47,7 @@ VTN_URL = ""  # URL to the VTN
 async def main():
   async with aiohttp.ClientSession() as session:
     token = await toadr3.acquire_access_token(
-      session, TOKEN_URL, GRANT_TYPE, SCOPE, CLIENT_ID, CLIENT_SECRET
+      session, TOKEN_URL, GRANT_TYPE, CLAIMS, CLIENT_ID, CLIENT_SECRET
     )
 
     events = await toadr3.get_events(session, VTN_URL, token)

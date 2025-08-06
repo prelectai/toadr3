@@ -2,7 +2,14 @@ import pytest
 from aiohttp import web
 from aiohttp.pytest_plugin import AiohttpClient
 
-from toadr3 import AccessToken, OAuthConfig, ToadrError, acquire_access_token_from_config
+from toadr3 import (
+    AccessToken,
+    OAuthAudienceConfig,
+    OAuthConfig,
+    OAuthScopeConfig,
+    ToadrError,
+    acquire_access_token_from_config,
+)
 
 
 def test_valid_access_token() -> None:
@@ -21,11 +28,53 @@ def test_expired_access_token() -> None:
     assert token.is_expired() is True
 
 
-async def test_acquire_access_token_none_scope() -> None:
-    with pytest.raises(ValueError, match="scope is required"):
+async def test_acquire_access_token_none_claims() -> None:
+    with pytest.raises(ValueError, match="claims are required"):
         _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
             config=OAuthConfig(
+                "url",
+                "grant_type",
+                None,  # type: ignore[arg-type]
+                "client_id",
+                "client_secret",
+            ),
+        )
+
+
+async def test_acquire_access_token_empty_claims() -> None:
+    with pytest.raises(ValueError, match="claims cannot be empty"):
+        _ = await acquire_access_token_from_config(
+            None,  # type: ignore[arg-type]
+            config=OAuthConfig(
+                "url",
+                "grant_type",
+                {},
+                "client_id",
+                "client_secret",
+            ),
+        )
+
+
+async def test_acquire_access_token_none_scope() -> None:
+    with pytest.raises(ValueError, match="scope cannot be None"):
+        _ = await acquire_access_token_from_config(
+            None,  # type: ignore[arg-type]
+            config=OAuthScopeConfig(
+                "url",
+                "grant_type",
+                None,  # type: ignore[arg-type]
+                "client_id",
+                "client_secret",
+            ),
+        )
+
+
+async def test_acquire_access_token_none_audience() -> None:
+    with pytest.raises(ValueError, match="audience cannot be None"):
+        _ = await acquire_access_token_from_config(
+            None,  # type: ignore[arg-type]
+            config=OAuthAudienceConfig(
                 "url",
                 "grant_type",
                 None,  # type: ignore[arg-type]
@@ -39,7 +88,7 @@ async def test_acquire_access_token_none_grant_type() -> None:
     with pytest.raises(ValueError, match="grant_type is required"):
         _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            config=OAuthConfig(
+            config=OAuthScopeConfig(
                 "url",
                 None,  # type: ignore[arg-type]
                 "scope",
@@ -54,7 +103,7 @@ async def test_acquire_access_token_missing_client_id(monkeypatch: pytest.Monkey
     with pytest.raises(ValueError, match="client_id is required"):
         _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            config=OAuthConfig(
+            config=OAuthScopeConfig(
                 "url",
                 "grant_type",
                 "scope",
@@ -69,7 +118,7 @@ async def test_acquire_access_token_missing_client_secret(monkeypatch: pytest.Mo
     with pytest.raises(ValueError, match="client_secret is required"):
         _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            config=OAuthConfig(
+            config=OAuthScopeConfig(
                 "url",
                 "grant_type",
                 "scope",
@@ -90,10 +139,10 @@ async def test_acquire_access_token_client_id_and_secret_from_env(
     with pytest.raises(ValueError, match="grant_type is required"):
         _ = await acquire_access_token_from_config(
             None,  # type: ignore[arg-type]
-            config=OAuthConfig(
+            config=OAuthScopeConfig(
                 "url",
                 None,  # type: ignore[arg-type]
-                None,  # type: ignore[arg-type]
+                "scope",
             ),
         )
 
@@ -161,7 +210,7 @@ async def test_acquire_access_token(aiohttp_client: AiohttpClient) -> None:
 
     access_token = await acquire_access_token_from_config(
         client,  # type: ignore[arg-type]
-        config=OAuthConfig(
+        config=OAuthScopeConfig(
             "/token",
             "client_credentials",
             "scope",
@@ -193,7 +242,7 @@ async def check_acquire_access_token_error(
     with pytest.raises(ToadrError) as e:
         await acquire_access_token_from_config(
             client,  # type: ignore[arg-type]
-            config=OAuthConfig(
+            config=OAuthScopeConfig(
                 "/token",
                 grant_type,
                 scope,

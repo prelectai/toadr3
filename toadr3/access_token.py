@@ -14,7 +14,7 @@ class OAuthConfig:
         self,
         token_url: str,
         grant_type: str,
-        scope: str,
+        claims: dict[str, str],
         client_id: str | None = None,
         client_secret: str | None = None,
     ) -> None:
@@ -31,8 +31,8 @@ class OAuthConfig:
             The URL to acquire the token from.
         grant_type : str
             The grant type to use for the token request.
-        scope : str
-            The scope of the token.
+        claims : dict[str, str]
+            Collection of claims to include in the token request.
         client_id : str | None
             The client ID or None if acquirable from the environment as CLIENT_ID.
         client_secret : str | None
@@ -42,7 +42,7 @@ class OAuthConfig:
         self._client_id = client_id
         self._client_secret = client_secret
         self._grant_type = grant_type
-        self._scope = scope
+        self._claims = claims
 
     @property
     def url(self) -> str:
@@ -65,9 +65,99 @@ class OAuthConfig:
         return self._grant_type
 
     @property
+    def claims(self) -> dict[str, str]:
+        """Claims to include in the token request."""
+        return self._claims
+
+
+class OAuthScopeConfig(OAuthConfig):
+    """Model encapsulating values required for authorization with scope."""
+
+    def __init__(
+        self,
+        token_url: str,
+        grant_type: str,
+        scope: str,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+    ) -> None:
+        """Encapsulate configuration required for authorization with scope.
+
+        `client_id` and `client_secret` can be None if they are available
+        in the environment as CLIENT_ID and CLIENT_SECRET.
+
+        Parameters
+        ----------
+        token_url : str
+            The URL to acquire the token from.
+        grant_type : str
+            The grant type to use for the token request.
+        scope : str
+            The scope of the token.
+        client_id : str | None
+            The client ID or None if acquirable from the environment as CLIENT_ID.
+        client_secret : str | None
+            The client secret or None if acquirable from the environment as CLIENT_SECRET.
+        """
+        if scope is None:
+            raise ValueError("scope cannot be None")
+        super().__init__(
+            token_url,
+            grant_type,
+            claims={"scope": scope},
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+
+    @property
     def scope(self) -> str:
         """Scope."""
-        return self._scope
+        return self._claims["scope"]
+
+
+class OAuthAudienceConfig(OAuthConfig):
+    """Model encapsulating values required for authorization with audience."""
+
+    def __init__(
+        self,
+        token_url: str,
+        grant_type: str,
+        audience: str,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+    ) -> None:
+        """Encapsulate configuration required for authorization with audience.
+
+        `client_id` and `client_secret` can be None if they are available
+        in the environment as CLIENT_ID and CLIENT_SECRET.
+
+        Parameters
+        ----------
+        token_url : str
+            The URL to acquire the token from.
+        grant_type : str
+            The grant type to use for the token request.
+        audience : str
+            The audience of the token.
+        client_id : str | None
+            The client ID or None if acquirable from the environment as CLIENT_ID.
+        client_secret : str | None
+            The client secret or None if acquirable from the environment as CLIENT_SECRET.
+        """
+        if audience is None:
+            raise ValueError("audience cannot be None")
+        super().__init__(
+            token_url,
+            grant_type,
+            claims={"audience": audience},
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+
+    @property
+    def audience(self) -> str:
+        """Audience."""
+        return self._claims["audience"]
 
 
 class AccessToken:
@@ -138,7 +228,8 @@ async def acquire_access_token_from_config(
     session : aiohttp.ClientSession
         The aiohttp session to use for the request.
     config: OAuthConfig
-        The configuration object required to acquire an access token.
+        The configuration object required to acquire an access token. It can be either an instance
+        of OAuthScopeConfig or OAuthAudienceConfig.
 
     Returns
     -------
@@ -149,11 +240,17 @@ async def acquire_access_token_from_config(
     ------
     ValueError
         If the `client_id` or `client_secret` are not provided and not available in the environment.
+        If 'claims' are not provided or empty.
     toadr3.ToadrError
         If the request to the token provider fails.
     """
     return await acquire_access_token(
-        session, config.url, config.grant_type, config.scope, config.client_id, config.client_secret
+        session,
+        config.url,
+        config.grant_type,
+        config.claims,
+        config.client_id,
+        config.client_secret,
     )
 
 
@@ -161,7 +258,7 @@ async def acquire_access_token(
     session: aiohttp.ClientSession,
     token_url: str,
     grant_type: str,
-    scope: str,
+    claims: dict[str, str],
     client_id: str | None = None,
     client_secret: str | None = None,
 ) -> AccessToken:
@@ -179,8 +276,8 @@ async def acquire_access_token(
         The URL to acquire the token from.
     grant_type : str
         The grant type to use for the token request.
-    scope : str
-        The scope of the token.
+    claims: dict[str, str]
+        Collection of claims to include in the token request.
     client_id : str | None
         The client ID or None if acquirable from environment as CLIENT_ID.
     client_secret : str | None
@@ -211,15 +308,19 @@ async def acquire_access_token(
     if grant_type is None:
         raise ValueError("grant_type is required")
 
-    if scope is None:
-        raise ValueError("scope is required")
+    if claims is None:
+        raise ValueError("claims are required")
+
+    if len(claims) == 0:
+        raise ValueError("claims cannot be empty")
 
     credentials = {
         "grant_type": grant_type,
         "client_id": client_id,
         "client_secret": client_secret,
-        "scope": scope,
     }
+
+    credentials |= claims
 
     async with session.post(token_url, data=credentials) as response:
         # 400 is the start of HTTP error codes

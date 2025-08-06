@@ -1,7 +1,9 @@
 from . import models
 from .access_token import (
     AccessToken,
+    OAuthAudienceConfig,
     OAuthConfig,
+    OAuthScopeConfig,
     acquire_access_token,
     acquire_access_token_from_config,
 )
@@ -13,6 +15,8 @@ from .reports import get_reports, post_report
 __all__ = [
     "AccessToken",
     "OAuthConfig",
+    "OAuthScopeConfig",
+    "OAuthAudienceConfig",
     "ToadrClient",
     "ToadrError",
     "acquire_access_token",
