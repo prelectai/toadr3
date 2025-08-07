@@ -32,7 +32,10 @@ async def post_report(
     Raises
     ------
     toadr3.ToadrError
-        If the request to the VTN fails.
+        If the request to the VTN fails. Specifically, if the
+        response status is 400, 403, 409, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
     """
     if report is None:
         raise ValueError("report is required")
@@ -116,7 +119,9 @@ async def get_reports(
     ValueError
         If the query parameters are invalid.
     toadr3.ToadrException
-        If the request to the VTN fails.
+        If the request to the VTN fails. Specifically, if the response status is 400, 403, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
     """
     _check_arguments(skip, limit)
     params = _create_query_parameters(program_id, event_id, client_name, skip, limit)

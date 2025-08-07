@@ -52,7 +52,9 @@ async def get_events(
     ValueError
         If the query parameters are invalid.
     toadr3.ToadrError
-        If the request to the VTN fails.
+        If the request to the VTN fails. Specifically, if the response status is 400, 403, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
     """
     _check_arguments(target_type, target_values, skip, limit)
 
