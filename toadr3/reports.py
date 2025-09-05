@@ -10,6 +10,7 @@ async def post_report(
     vtn_url: str,
     access_token: AccessToken | None,
     report: Report,
+    custom_headers: dict[str, str] | None = None,
 ) -> Report:
     """Post a report to the VTN.
 
@@ -23,6 +24,8 @@ async def post_report(
         The access token to use for the request, use None if no token is required.
     report : Report
         The report object to post.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
 
     Returns
     -------
@@ -40,7 +43,10 @@ async def post_report(
     if report is None:
         raise ValueError("report is required")
 
-    headers = {}
+    headers: dict[str, str] = {}
+    if custom_headers is not None:
+        headers |= custom_headers
+
     if access_token is not None:
         headers["Authorization"] = f"Bearer {access_token.token}"
 
@@ -85,6 +91,7 @@ async def get_reports(
     skip: int | None = None,
     limit: int | None = None,
     extra_params: dict[str, str | int] | None = None,
+    custom_headers: dict[str, str] | None = None,
 ) -> list[Report]:
     """Get a list of reports from the VTN.
 
@@ -108,6 +115,8 @@ async def get_reports(
         The maximum number of reports to return.
     extra_params : dict[str, str | int] | None
         Extra query parameters to include in the request.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
 
     Returns
     -------
@@ -130,7 +139,10 @@ async def get_reports(
         # we don't want extra_params to overwrite the existing params
         params = extra_params | params
 
-    headers = {}
+    headers: dict[str, str] = {}
+    if custom_headers is not None:
+        headers |= custom_headers
+
     if access_token is not None:
         headers["Authorization"] = f"Bearer {access_token.token}"
 

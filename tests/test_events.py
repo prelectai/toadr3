@@ -88,10 +88,21 @@ async def events_get_response(request: web.Request) -> web.Response:
     skip = request.query.get("skip", None)
     limit = request.query.get("limit", None)
     x_parity = request.query.get("x-parity", None)
+    custom_header = request.headers.get("X-Custom-Header", None)
 
     # Check if x-parity is valid here since it is not part of the API
     if x_parity is not None and x_parity not in ["even", "odd"]:
         raise ValueError(f"Invalid value for x-parity: {x_parity}")
+
+    if custom_header is not None and custom_header != "CustomValue":
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+            },
+            status=400,
+        )
 
     events = create_events()
 
@@ -201,3 +212,20 @@ async def test_events_with_custom_query_parameters(
     reports = await get_events(session, "", token, extra_params={"x-parity": "odd"})
     assert len(reports) == 3
     assert {report.id for report in reports} == {"37", "39", "41"}
+
+
+async def test_events_with_custom_header(session: ClientSession, token: AccessToken) -> None:
+    reports = await get_events(
+        session, "", token, custom_headers={"X-Custom-Header": "CustomValue"}
+    )
+
+    assert len(reports) == 5
+
+
+async def test_events_with_invalid_custom_header(
+    session: ClientSession, token: AccessToken
+) -> None:
+    with pytest.raises(ToadrError) as exc_info:
+        _ = await get_events(session, "", token, custom_headers={"X-Custom-Header": "InvalidValue"})
+
+    assert exc_info.value.message == "Bad Request - Invalid value for X-Custom-Header: InvalidValue"

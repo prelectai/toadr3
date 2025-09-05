@@ -15,6 +15,7 @@ async def get_events(
     skip: int | None = None,
     limit: int | None = None,
     extra_params: dict[str, str | int | list[str]] | None = None,
+    custom_headers: dict[str, str] | None = None,
 ) -> list[Event]:
     """Get a list of events from the VTN.
 
@@ -41,6 +42,8 @@ async def get_events(
         The maximum number of events to return.
     extra_params : dict[str, str | int | list[str]] | None
         Extra query parameters to include in the request.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
 
     Returns
     -------
@@ -64,7 +67,10 @@ async def get_events(
         # we don't want extra_params to overwrite the existing params
         params = extra_params | params
 
-    headers = {}
+    headers: dict[str, str] = {}
+    if custom_headers is not None:
+        headers |= custom_headers
+
     if access_token is not None:
         headers["Authorization"] = f"Bearer {access_token.token}"
 
