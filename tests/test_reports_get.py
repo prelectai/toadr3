@@ -60,10 +60,29 @@ async def reports_get_response(request: web.Request) -> web.Response:
     skip = request.query.get("skip", None)
     limit = request.query.get("limit", None)
     x_parity = request.query.get("x-parity", None)
+    custom_header = request.headers.get("X-Custom-Header", None)
 
     # Check if x-parity is valid here since it is not part of the API
     if x_parity is not None and x_parity not in ["even", "odd"]:
-        raise ValueError(f"Invalid value for x-parity: {x_parity}")
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for x-parity: {x_parity}",
+            },
+            status=400,
+        )
+
+    # If custom header is not set to "CustomValue" return 400
+    if custom_header is not None and custom_header != "CustomValue":
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+            },
+            status=400,
+        )
 
     reports = create_reports()
 
@@ -163,6 +182,9 @@ async def test_reports_with_extra_query_parameters(
     assert len(reports) == 4
     assert {report.id for report in reports} == {"99", "101", "103", "105"}
 
+    with pytest.raises(ToadrError):
+        _ = await get_reports(session, "", token, extra_params={"x-parity": "invalid"})
+
 
 async def test_reports_extra_query_params_does_not_overwrite(
     session: ClientSession, token: AccessToken
@@ -171,3 +193,26 @@ async def test_reports_extra_query_params_does_not_overwrite(
 
     assert len(reports) == 3
     assert {report.id for report in reports} == {"103", "104", "105"}
+
+
+async def test_reports_with_custom_header(session: ClientSession, token: AccessToken) -> None:
+    reports = await get_reports(
+        session,
+        "",
+        token,
+        custom_headers={"X-Custom-Header": "CustomValue"},
+    )
+
+    assert len(reports) == 7
+
+
+async def test_reports_with_custom_header_invalid_value(
+    session: ClientSession, token: AccessToken
+) -> None:
+    with pytest.raises(ToadrError, match="Invalid value for X-Custom-Header: InvalidValue"):
+        _ = await get_reports(
+            session,
+            "",
+            token,
+            custom_headers={"X-Custom-Header": "InvalidValue"},
+        )

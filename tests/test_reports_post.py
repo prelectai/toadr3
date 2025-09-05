@@ -31,6 +31,7 @@ async def reports_post_response(request: web.Request) -> web.Response:
         return web.json_response(data=data, status=403)
 
     report_data = await request.json()
+    custom_header = request.headers.get("X-Custom-Header", None)
 
     if report_data["eventID"] == "35" or report_data["id"] == "123":
         data = {
@@ -39,6 +40,17 @@ async def reports_post_response(request: web.Request) -> web.Response:
             "detail": "The report already exists",
         }
         return web.json_response(data=data, status=409)
+
+    # If custom header is not set to "CustomValue" return 400
+    if custom_header is not None and custom_header != "CustomValue":
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+            },
+            status=400,
+        )
 
     # Return the report data with some additional fields
     report_data["id"] = "123"
@@ -86,3 +98,26 @@ async def test_post_report(session: ClientSession, token: AccessToken) -> None:
     assert result.id == "123"
     assert result.created == datetime.datetime.fromisoformat("2024-09-30T12:12:34Z")
     assert result.modified == datetime.datetime.fromisoformat("2024-09-30T12:12:35Z")
+
+
+async def test_post_report_custom_header(session: ClientSession, token: AccessToken) -> None:
+    report = Report.model_validate(create_report())
+    result = await post_report(
+        session, "", token, report, custom_headers={"X-Custom-Header": "CustomValue"}
+    )
+
+    assert result.id == "123"
+    assert result.created == datetime.datetime.fromisoformat("2024-09-30T12:12:34Z")
+    assert result.modified == datetime.datetime.fromisoformat("2024-09-30T12:12:35Z")
+
+
+async def test_post_report_invalid_custom_header(
+    session: ClientSession, token: AccessToken
+) -> None:
+    report = Report.model_validate(create_report())
+
+    msg = "Bad Request - Invalid value for X-Custom-Header: InvalidValue"
+    with pytest.raises(ToadrError, match=msg):
+        _ = await post_report(
+            session, "", token, report, custom_headers={"X-Custom-Header": "InvalidValue"}
+        )
