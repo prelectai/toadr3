@@ -14,12 +14,12 @@ aiodns = "^3.2.0"
 pydantic = "^2.11.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.6.5"
-pytest = "^8.3.2"
-rich = "^13.7.1"
-pytest-aiohttp = "^1.0.5"
-pytest-asyncio = "^0.24.0"
-mypy = "^1.15.0"
+ruff = "^0"
+pytest = "^8.3.0"
+rich = "^14"
+pytest-aiohttp = "^1"
+pytest-asyncio = "^1"
+mypy = "^1"
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
