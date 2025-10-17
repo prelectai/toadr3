@@ -124,32 +124,32 @@ def test_report_create_report_error_no_client_name(event: Event) -> None:
 
 def test_report_create_report_error_no_report_type(event: Event) -> None:
     for report_type in [None, True, False, "", []]:  # type: ignore[var-annotated]
-        with pytest.raises(ValueError, match="report_type is required."):
+        with pytest.raises(ValueError, match="report_type is required"):
             Report.create_report(event, "TestClient", report_type, ["1"])  # type: ignore[arg-type]
 
 
 def test_report_create_report_no_targets(event: Event) -> None:
     event.targets = None
-    with pytest.raises(ValueError, match="event does not have any targets."):
+    with pytest.raises(ValueError, match="event does not have any targets"):
         Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["1"])
 
     event.targets = []
-    with pytest.raises(ValueError, match="event does not have any targets."):
+    with pytest.raises(ValueError, match="event does not have any targets"):
         Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["1"])
 
 
 def test_report_create_report_error_no_report_values(event: Event) -> None:
     for report_values in [None, True, False, "", "abc", []]:  # type: ignore[var-annotated]
-        with pytest.raises(ValueError, match="report_values is required."):
+        with pytest.raises(ValueError, match="report_values is required"):
             Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", report_values)  # type: ignore[arg-type]
 
 
 def test_report_create_report_error_missing_event_values(event: Event) -> None:
     event.report_descriptors = []
-    with pytest.raises(ValueError, match="event does not have any report_descriptors."):
+    with pytest.raises(ValueError, match="event does not have any report_descriptors"):
         Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["1"])
 
     assert event.targets is not None
     event.targets.pop(0)  # Remove RESOURCE_NAME target
-    with pytest.raises(ValueError, match="event does not have a target for type RESOURCE_NAME."):
+    with pytest.raises(ValueError, match="event does not have a target for type RESOURCE_NAME"):
         Report.create_report(event, "TestClient", "POWER_LIMIT_ACKNOWLEDGEMENT", ["1"])

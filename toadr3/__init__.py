@@ -14,9 +14,9 @@ from .reports import get_reports, post_report
 
 __all__ = [
     "AccessToken",
+    "OAuthAudienceConfig",
     "OAuthConfig",
     "OAuthScopeConfig",
-    "OAuthAudienceConfig",
     "ToadrClient",
     "ToadrError",
     "acquire_access_token",

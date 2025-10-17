@@ -22,6 +22,7 @@ __all__ = [
     "ObjectOperation",
     "ObjectType",
     "OperationType",
+    "Point",
     "Problem",
     "Point",
     "Report",
