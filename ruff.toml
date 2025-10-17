@@ -74,8 +74,6 @@ select = [
 ]
 
 ignore = [
-    "ANN101", # Missing type annotation for self in method
-    "ANN102", # Missing type annotation for cls in classmethod
     "ANN204", # Missing return type annotation for special method `__init__`
     "D100", # Missing docstring in public module
     "PLR0913", # Too many arguments in function definition
