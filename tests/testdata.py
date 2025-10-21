@@ -111,3 +111,21 @@ def create_reports() -> list[dict[str, Any]]:
         create_report(id="104", programID="3", eventID="103", clientName="YAC"),
         create_report(id="105", programID="3", eventID="104", clientName="NAC"),
     ]
+
+
+def create_program(pid: str, program_name: str, program_long_name: str) -> dict[str, Any]:
+    return {
+        "id": f"{pid}",
+        "createdDateTime": "2025-08-21T07:13:00Z",
+        "modificationDateTime": "2025-08-23T08:10:00Z",
+        "programName": f"{program_name}",
+        "programLongName": f"{program_long_name}",
+    }
+
+
+def create_programs() -> list[dict[str, Any]]:
+    return [
+        create_program("0", "HB", "Heartbeat"),
+        create_program("1", "DR1", "Demand Response 1"),
+        create_program("2", "DR2", "Demand Response 2"),
+    ]

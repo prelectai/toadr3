@@ -19,6 +19,9 @@ Currently, it supports the following operations:
   - Filter by program id
   - Filter by target type and target values
   - Limit and skip for pagination
+- List programs [GET]
+  - Filter by target type and target values
+  - Limit and skip for pagination
 - List reports [GET]
   - Filter by program id
   - Filter by event id

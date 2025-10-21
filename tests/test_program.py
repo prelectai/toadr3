@@ -1,5 +1,7 @@
 import datetime
 
+from testdata import create_program
+
 import toadr3
 
 UTC = datetime.timezone.utc
@@ -31,15 +33,9 @@ def test_program_defaults() -> None:
 
 
 def test_program_sample() -> None:
-    sample_1 = """{
-        "id": "0",
-        "createdDateTime": "2025-08-21T07:13:00Z",
-        "modificationDateTime": "2025-08-23T08:10:00Z",
-        "programName": "HB",
-        "programLongName": "Heartbeat"
-    }"""
+    sample_1 = create_program("0", "HB", "Heartbeat")
 
-    program = toadr3.models.Program.model_validate_json(sample_1)
+    program = toadr3.models.Program.model_validate(sample_1)
 
     assert program.id == "0"
     assert program.program_name == "HB"
