@@ -15,7 +15,7 @@ def test_program_defaults() -> None:
     assert program.id is None
     assert program.created_date_time is None
     assert program.modification_date_time is None
-    assert program.object_type == "EVENT"
+    assert program.object_type == "PROGRAM"
     assert program.program_name == "Test Program"
     assert program.program_long_name is None
     assert program.retailer_name is None

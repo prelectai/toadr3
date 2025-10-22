@@ -22,7 +22,7 @@ class Program(DocstringBaseModel):
     modification_date_time: datetime.datetime | None = None
     """VTN provisioned on object modification."""
 
-    object_type: Literal["EVENT"] = "EVENT"
+    object_type: Literal["PROGRAM"] = "PROGRAM"
     """VTN provisioned on object creation."""
 
     program_name: str = Field(min_length=1, max_length=128)
