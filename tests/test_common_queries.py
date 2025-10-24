@@ -4,7 +4,15 @@ import aiohttp
 import pytest
 from aiohttp import ClientSession
 
-from toadr3 import AccessToken, ToadrError, get_events, get_programs, get_reports, models
+from toadr3 import (
+    AccessToken,
+    ToadrError,
+    get_events,
+    get_programs,
+    get_reports,
+    get_subscriptions,
+    models,
+)
 from toadr3.models import DocstringBaseModel
 
 
@@ -26,6 +34,7 @@ class QueryFunction(Protocol):
     [
         get_events,
         get_programs,
+        get_subscriptions,
     ],
 )
 async def test_target_type_is_none(function: QueryFunction) -> None:
@@ -39,6 +48,7 @@ async def test_target_type_is_none(function: QueryFunction) -> None:
     [
         get_events,
         get_programs,
+        get_subscriptions,
     ],
 )
 async def test_target_type_is_not_str_or_target_type(function: QueryFunction) -> None:
@@ -52,6 +62,7 @@ async def test_target_type_is_not_str_or_target_type(function: QueryFunction) ->
     [
         get_events,
         get_programs,
+        get_subscriptions,
     ],
 )
 async def test_target_values_is_none(function: QueryFunction) -> None:
@@ -65,6 +76,7 @@ async def test_target_values_is_none(function: QueryFunction) -> None:
     [
         get_events,
         get_programs,
+        get_subscriptions,
     ],
 )
 async def test_target_values_not_list(function: QueryFunction) -> None:
@@ -85,6 +97,7 @@ async def test_target_values_not_list(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_skip_not_int(function: QueryFunction) -> None:
@@ -99,6 +112,7 @@ async def test_skip_not_int(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_skip_negative(function: QueryFunction) -> None:
@@ -113,6 +127,7 @@ async def test_skip_negative(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_limit_not_int(function: QueryFunction) -> None:
@@ -127,6 +142,7 @@ async def test_limit_not_int(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_limit_out_of_range_negative(function: QueryFunction) -> None:
@@ -141,6 +157,7 @@ async def test_limit_out_of_range_negative(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_multiple_errors(function: QueryFunction) -> None:
@@ -155,6 +172,7 @@ async def test_multiple_errors(function: QueryFunction) -> None:
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_forbidden(session: ClientSession, function: QueryFunction) -> None:
@@ -168,6 +186,7 @@ async def test_forbidden(session: ClientSession, function: QueryFunction) -> Non
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_custom_header(
@@ -185,6 +204,7 @@ async def test_with_custom_header(
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_custom_header_invalid_value(
@@ -205,6 +225,7 @@ async def test_with_custom_header_invalid_value(
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_extra_query_parameters(
@@ -235,6 +256,7 @@ async def test_with_extra_query_parameters(
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_skip(
@@ -251,6 +273,7 @@ async def test_with_skip(
         get_events,
         get_programs,
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_limit(
@@ -266,6 +289,7 @@ async def test_with_limit(
     [
         (get_events, "34"),
         (get_reports, "1"),
+        (get_subscriptions, "6"),
     ],
 )
 async def test_with_program_id(
@@ -284,6 +308,7 @@ async def test_with_program_id(
     [
         (get_events, "33"),
         (get_reports, "2"),
+        (get_subscriptions, "7"),
     ],
 )
 async def test_with_program_id_no_match(
@@ -297,6 +322,7 @@ async def test_with_program_id_no_match(
     "function",
     [
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_client_name(
@@ -316,6 +342,7 @@ async def test_with_client_name(
     "function",
     [
         get_reports,
+        get_subscriptions,
     ],
 )
 async def test_with_client_name_no_match(
@@ -323,3 +350,33 @@ async def test_with_client_name_no_match(
 ) -> None:
     events = await function(session, "", token, client_name="non-existent-client")
     assert len(events) == 0
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_subscriptions,
+    ],
+)
+async def test_with_objects_not_a_list(
+    session: ClientSession, token: AccessToken, function: QueryFunction
+) -> None:
+    with pytest.raises(ValueError, match="objects must be a list of strings or ObjectType"):
+        _ = await function(session, "", token, objects="non-existent-client")
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_subscriptions,
+    ],
+)
+async def test_with_objects_not_object_type_or_string(
+    session: ClientSession, token: AccessToken, function: QueryFunction
+) -> None:
+    match_msg = (
+        "object type '1' must be of type string or ObjectType, "
+        "object type '2' must be of type string or ObjectType"
+    )
+    with pytest.raises(ValueError, match=match_msg):
+        _ = await function(session, "", token, objects=[1, 2])

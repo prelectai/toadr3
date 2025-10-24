@@ -1,5 +1,7 @@
 from typing import Any
 
+from toadr3.models import ObjectType, OperationType
+
 
 def create_event(**kwargs: str | int) -> dict[str, Any]:
     event: dict[str, Any] = {
@@ -128,4 +130,44 @@ def create_programs() -> list[dict[str, Any]]:
         create_program("0", "HB", "Heartbeat"),
         create_program("1", "DR1", "Demand Response 1"),
         create_program("2", "DR2", "Demand Response 2"),
+    ]
+
+
+def create_subscription(sid: str, pid: str, client_name: str = "YAC") -> dict[str, Any]:
+    return {
+        "id": f"{sid}",
+        "objectType": "SUBSCRIPTION",
+        "clientName": f"{client_name}",
+        "programID": f"{pid}",
+        "objectOperations": [
+            {
+                "objects": [ObjectType.EVENT],
+                "operations": [OperationType.POST],
+                "callbackUrl": "url://callback",
+            },
+            {
+                "objects": [ObjectType.PROGRAM, ObjectType.REPORT],
+                "operations": [OperationType.PUT, OperationType.DELETE],
+                "callback_url": "url://callback2",
+                "bearer_token": "token",
+            },
+        ],
+        "targets": [{"type": "VEN", "values": ["venId"]}],
+    }
+
+
+def create_subscriptions() -> list[dict[str, Any]]:
+    exception = create_subscription("7", "5", client_name="NAC")
+    exception["objectOperations"] = [
+        {
+            "objects": [ObjectType.SUBSCRIPTION],
+            "operations": [OperationType.POST],
+            "callbackUrl": "url://callback3",
+        },
+    ]
+    return [
+        create_subscription("2", "5"),
+        create_subscription("3", "6"),
+        create_subscription("4", "5"),
+        exception,
     ]

@@ -5,7 +5,7 @@ import pytest
 from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
 from mock_vtn_server import MockVTNServer
-from testdata import create_events, create_programs, create_reports
+from testdata import create_events, create_programs, create_reports, create_subscriptions
 
 from toadr3 import AccessToken, OAuthScopeConfig, ToadrClient
 from toadr3.models import Problem
@@ -239,6 +239,59 @@ async def _programs_get_response(request: web.Request) -> web.Response:
     return web.json_response(data=programs, status=200)
 
 
+async def _subscriptions_get_response(request: web.Request) -> web.Response:
+    auth = request.headers.get("Authorization", None)
+
+    credential_response = _check_credentials(auth)
+    if credential_response is not None:
+        return credential_response
+
+    program_id = request.query.get("programID", None)
+    client_name = request.query.get("clientName", None)
+    _target_type = request.query.get("targetType", None)
+    _target_values = request.query.getall("targetValues", None)
+    objects = request.query.getall("objects", None)
+    skip = request.query.get("skip", None)
+    limit = request.query.get("limit", None)
+    x_parity = request.query.get("x-parity", None)
+    custom_header = request.headers.get("X-Custom-Header", None)
+
+    # Check if x-parity is valid here since it is not part of the API
+    extra_param_response = _check_extra_params(x_parity)
+    if extra_param_response is not None:
+        return extra_param_response
+
+    # If custom header is set but not set to "CustomValue" return 400
+    extra_header_response = _check_custom_header(custom_header)
+    if extra_header_response is not None:
+        return extra_header_response
+
+    subs = create_subscriptions()
+
+    if program_id is not None:
+        subs = [sub for sub in subs if sub["programID"] == program_id]
+
+    if client_name is not None:
+        subs = [sub for sub in subs if sub["clientName"] == client_name]
+
+    if objects is not None:
+        result = []
+        for sub in subs:
+            object_names = set()
+            for obj_op in sub["objectOperations"]:
+                for object_name in obj_op["objects"]:
+                    object_names.add(object_name)
+
+            if any(object_name in object_names for object_name in objects):
+                result.append(sub)
+
+        subs = result
+
+    subs = _filter(subs, skip, limit, x_parity)
+
+    return web.json_response(data=subs, status=200)
+
+
 @pytest.fixture
 async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
@@ -246,6 +299,8 @@ async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     app.router.add_get("/events", await _exception_wrapper(_events_get_response))
     app.router.add_get("/reports", await _exception_wrapper(_reports_get_response))
     app.router.add_get("/programs", await _exception_wrapper(_programs_get_response))
+    app.router.add_get("/subscriptions", await _exception_wrapper(_subscriptions_get_response))
+
     return await aiohttp_client(app)  # type: ignore[return-value]
 
 
