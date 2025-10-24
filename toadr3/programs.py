@@ -3,6 +3,10 @@ import aiohttp
 from toadr3 import AccessToken, ToadrError
 from toadr3.models import Program, TargetType
 
+from ._internal import ParameterBuilder, SkipAndLimit, Targets
+
+_GET_PARAMS_BUILDER = ParameterBuilder(Targets, SkipAndLimit)
+
 
 async def get_programs(
     session: aiohttp.ClientSession,
@@ -55,13 +59,14 @@ async def get_programs(
     aiohttp.ClientError
         If there is an unexpected error with the HTTP request to the VTN.
     """
-    _check_arguments(target_type, target_values, skip, limit)
-
-    params = _create_query_parameters(target_type, target_values, skip, limit)
-
-    if extra_params is not None:
-        # we don't want extra_params to overwrite the existing params
-        params = extra_params | params
+    args = {
+        "target_type": target_type,
+        "target_values": target_values,
+        "skip": skip,
+        "limit": limit,
+    }
+    _GET_PARAMS_BUILDER.check_query_parameters(args)
+    params = _GET_PARAMS_BUILDER.build_query_parameters(args, extra_params)
 
     headers: dict[str, str] = {}
     if custom_headers is not None:
@@ -100,93 +105,3 @@ async def get_programs(
         for program in data:
             result.append(Program.model_validate(program))
         return result
-
-
-def _create_query_parameters(
-    target_type: TargetType | str | None,
-    target_values: list[str] | None,
-    skip: int | None,
-    limit: int | None,
-) -> dict[str, int | str | list[str]]:
-    """Create the query parameters for the get_events function.
-
-    Parameters
-    ----------
-    target_type: TargetType | str | None
-        The target type to filter the events by.
-    target_values: list[str] | None
-        The target values to filter the events by (names of the target type).
-    skip: int | None
-        The number of events to skip (for pagination).
-    limit: int | None
-        The maximum number of events to return.
-    """
-    params: dict[str, int | str | list[str]] = {}
-    if target_type is not None and target_values is not None:
-        if isinstance(target_type, TargetType):
-            params["targetType"] = target_type.value
-        else:
-            params["targetType"] = target_type  # should be string
-
-        params["targetValues"] = target_values
-
-    if skip is not None:
-        params["skip"] = skip
-
-    if limit is not None:
-        params["limit"] = limit
-
-    return params
-
-
-def _check_arguments(
-    target_type: TargetType | str | None,
-    target_values: list[str] | None,
-    skip: int | None,
-    limit: int | None,
-) -> None:
-    """Check the arguments for the get_events function.
-
-    Parameters
-    ----------
-    target_type: TargetType | str | None
-        The target type to filter the events by.
-    target_values: list[str] | None
-        The target values to filter the events by (names of the target type).
-    skip: int | None
-        The number of events to skip (for pagination).
-    limit: int | None
-        The maximum number of events to return.
-
-    Raises
-    ------
-    ValueError
-        If the query parameters are invalid.
-    """
-    errors = []
-    if target_type is not None and target_values is None:
-        errors.append("target_values are required when target_type is provided")
-
-    if target_values is not None and target_type is None:
-        errors.append("target_type is required when target_values are provided")
-
-    if target_values is not None and not isinstance(target_values, list):
-        errors.append("target_values must be a list of strings")
-
-    if target_type is not None and not isinstance(target_type, (TargetType, str)):
-        errors.append("target_type must be TargetType or str")
-
-    if skip is not None and not isinstance(skip, int):
-        errors.append("skip must be an integer")
-
-    if skip is not None and isinstance(skip, int) and skip < 0:
-        errors.append("skip must be a positive integer")
-
-    if limit is not None and not isinstance(limit, int):
-        errors.append("limit must be an integer")
-
-    if limit is not None and isinstance(limit, int) and limit < 0:
-        errors.append("limit must be a positive integer")
-
-    if errors:
-        raise ValueError(", ".join(errors))

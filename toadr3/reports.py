@@ -1,8 +1,11 @@
 import aiohttp
 
+from ._internal import ClientName, EventID, ParameterBuilder, ProgramID, SkipAndLimit
 from .access_token import AccessToken
 from .exceptions import ToadrError
 from .models import Report
+
+_GET_PARAMS_BUILDER = ParameterBuilder(ProgramID, EventID, ClientName, SkipAndLimit)
 
 
 async def post_report(
@@ -90,7 +93,7 @@ async def get_reports(
     client_name: str | None = None,
     skip: int | None = None,
     limit: int | None = None,
-    extra_params: dict[str, str | int] | None = None,
+    extra_params: dict[str, str | int | list[str]] | None = None,
     custom_headers: dict[str, str] | None = None,
 ) -> list[Report]:
     """Get a list of reports from the VTN.
@@ -113,7 +116,7 @@ async def get_reports(
         The number of reports to skip (for pagination).
     limit : int | None
         The maximum number of reports to return.
-    extra_params : dict[str, str | int] | None
+    extra_params : dict[str, str | int | list[str]] | None
         Extra query parameters to include in the request.
     custom_headers : dict[str, str] | None
         Extra headers to include in the request.
@@ -132,12 +135,15 @@ async def get_reports(
     aiohttp.ClientError
         If there is an unexpected error with the HTTP request to the VTN.
     """
-    _check_arguments(skip, limit)
-    params = _create_query_parameters(program_id, event_id, client_name, skip, limit)
-
-    if extra_params is not None:
-        # we don't want extra_params to overwrite the existing params
-        params = extra_params | params
+    args = {
+        "client_name": client_name,
+        "event_id": event_id,
+        "program_id": program_id,
+        "skip": skip,
+        "limit": limit,
+    }
+    _GET_PARAMS_BUILDER.check_query_parameters(args)
+    params = _GET_PARAMS_BUILDER.build_query_parameters(args, extra_params)
 
     headers: dict[str, str] = {}
     if custom_headers is not None:
@@ -176,72 +182,3 @@ async def get_reports(
         for report in data:
             result.append(Report.model_validate(report))
         return result
-
-
-def _create_query_parameters(
-    program_id: str | None,
-    event_id: str | None,
-    client_name: str | None,
-    skip: int | None,
-    limit: int | None,
-) -> dict[str, str | int]:
-    """Create the query parameters for the get_reports function.
-
-    Parameters
-    ----------
-    program_id : str | None
-        The program ID to filter the events by.
-    event_id : str | None
-        The event ID to filter the events by.
-    client_name : str | None
-        The client name to filter the events by.
-    skip : int | None
-        The number of events to skip (for pagination).
-    limit : int | None
-        The maximum number of events to return.
-    """
-    params: dict[str, str | int] = {}
-    if program_id is not None:
-        params["programID"] = program_id
-    if event_id is not None:
-        params["eventID"] = event_id
-    if client_name is not None:
-        params["clientName"] = client_name
-    if skip is not None:
-        params["skip"] = skip
-    if limit is not None:
-        params["limit"] = limit
-    return params
-
-
-def _check_arguments(skip: int | None, limit: int | None) -> None:
-    """
-    Check the arguments for the get_events function.
-
-    Parameters
-    ----------
-    skip : int | None
-        The number of events to skip (for pagination).
-    limit : int | None
-        The maximum number of events to return.
-
-    Raises
-    ------
-    ValueError
-        If the query parameters are invalid.
-    """
-    errors = []
-    if skip is not None and not isinstance(skip, int):
-        errors.append("skip must be an integer")
-
-    if skip is not None and isinstance(skip, int) and skip < 0:
-        errors.append("skip must be a positive integer")
-
-    if limit is not None and not isinstance(limit, int):
-        errors.append("limit must be an integer")
-
-    if limit is not None and isinstance(limit, int) and limit < 0:
-        errors.append("limit must be a positive integer")
-
-    if errors:
-        raise ValueError(", ".join(errors))
