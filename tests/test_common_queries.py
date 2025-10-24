@@ -242,7 +242,6 @@ async def test_with_skip(
 ) -> None:
     all_items = await function(session, "", token)
     items = await function(session, "", token, skip=1)
-
     assert items == all_items[1:]
 
 
@@ -259,7 +258,6 @@ async def test_with_limit(
 ) -> None:
     all_items = await function(session, "", token)
     items = await function(session, "", token, limit=2)
-
     assert items == all_items[:2]
 
 
@@ -275,10 +273,9 @@ async def test_with_program_id(
 ) -> None:
     all_items = await function(session, "", token)
     filtered_items = [item for item in all_items if getattr(item, "program_id", None) == pid]
-
     assert len(filtered_items) > 0, "No items found with program_id '1' for testing."
-    items = await function(session, "", token, program_id=pid)
 
+    items = await function(session, "", token, program_id=pid)
     assert items == filtered_items
 
 
@@ -293,5 +290,36 @@ async def test_with_program_id_no_match(
     session: ClientSession, token: AccessToken, function: QueryFunction, pid: str
 ) -> None:
     events = await function(session, "", token, program_id=pid)
+    assert len(events) == 0
 
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_reports,
+    ],
+)
+async def test_with_client_name(
+    session: ClientSession,
+    token: AccessToken,
+    function: QueryFunction,
+) -> None:
+    all_items = await function(session, "", token)
+    filtered_items = [item for item in all_items if getattr(item, "client_name", None) == "YAC"]
+    assert len(filtered_items) > 0, "No items found with program_id '1' for testing."
+
+    items = await function(session, "", token, client_name="YAC")
+    assert items == filtered_items
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_reports,
+    ],
+)
+async def test_with_client_name_no_match(
+    session: ClientSession, token: AccessToken, function: QueryFunction
+) -> None:
+    events = await function(session, "", token, client_name="non-existent-client")
     assert len(events) == 0
