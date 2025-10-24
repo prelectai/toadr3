@@ -1,36 +1,20 @@
-from toadr3.models import ObjectOperation, ObjectType, OperationType, Subscription
+from testdata import create_subscription
+
+from toadr3.models import ObjectType, OperationType, Subscription
 
 
 def test_subscription() -> None:
-    data = {
-        "objectType": "SUBSCRIPTION",
-        "clientName": "clientName",
-        "programID": "programId",
-        "objectOperations": [
-            {
-                "objects": [ObjectType.EVENT],
-                "operations": [OperationType.POST],
-                "callbackUrl": "url://callback",
-            },
-            ObjectOperation(
-                objects=[ObjectType.PROGRAM, ObjectType.REPORT],
-                operations=[OperationType.PUT, OperationType.DELETE],
-                callback_url="url://callback2",
-                bearer_token="token",
-            ),
-        ],
-        "targets": [{"type": "VEN", "values": ["venId"]}],
-    }
+    data = create_subscription(sid="1", pid="7")
 
     subscription = Subscription.model_validate(data)
 
-    assert subscription.id is None
+    assert subscription.id == "1"
     assert subscription.created is None
     assert subscription.modified is None
 
     assert subscription.object_type == "SUBSCRIPTION"
-    assert subscription.client_name == "clientName"
-    assert subscription.program_id == "programId"
+    assert subscription.client_name == "YAC"
+    assert subscription.program_id == "7"
     assert len(subscription.object_operations) == 2
     op_0 = subscription.object_operations[0]
     assert op_0.objects == [ObjectType.EVENT]
