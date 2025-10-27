@@ -1,3 +1,4 @@
+import pytest
 from aiohttp import ClientSession
 
 from toadr3 import AccessToken, get_subscriptions
@@ -27,3 +28,9 @@ async def test_filter_subscriptions_by_objects_str(
 
     subs = await get_subscriptions(session, "", token, objects=["EVENT"])
     assert len(subs) == 3
+
+
+async def test_subscriptions_wrong_result_type(session: ClientSession, token: AccessToken) -> None:
+    msg = "Expected result to be a list. Got <class 'dict'> instead."
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_subscriptions(session, "", token, custom_headers={"X-result-type": "dict"})

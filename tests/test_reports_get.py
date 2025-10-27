@@ -1,3 +1,4 @@
+import pytest
 from aiohttp import ClientSession
 
 from toadr3 import AccessToken, get_reports
@@ -31,3 +32,9 @@ async def test_reports_extra_query_params_does_not_overwrite(
 
     assert len(reports) == 3
     assert {report.id for report in reports} == {"103", "104", "105"}
+
+
+async def test_reports_wrong_result_type(session: ClientSession, token: AccessToken) -> None:
+    msg = "Expected result to be a list. Got <class 'dict'> instead."
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_reports(session, "", token, custom_headers={"X-result-type": "dict"})

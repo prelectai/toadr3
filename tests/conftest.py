@@ -5,7 +5,16 @@ import pytest
 from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
 from mock_vtn_server import MockVTNServer
-from testdata import create_events, create_programs, create_reports, create_subscriptions
+from testdata import (
+    create_event,
+    create_events,
+    create_program,
+    create_programs,
+    create_report,
+    create_reports,
+    create_subscription,
+    create_subscriptions,
+)
 
 from toadr3 import AccessToken, OAuthScopeConfig, ToadrClient
 from toadr3.models import Problem
@@ -133,6 +142,11 @@ def _filter(
 async def _events_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
 
+    if request.headers.get("X-result-type") == "dict":
+        # testing header indicating we want to return incorrect result
+        sub = create_event()
+        return web.json_response(data=sub, status=200)
+
     credential_response = _check_credentials(auth)
     if credential_response is not None:
         return credential_response
@@ -169,6 +183,11 @@ async def _events_get_response(request: web.Request) -> web.Response:
 
 async def _reports_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
+
+    if request.headers.get("X-result-type") == "dict":
+        # testing header indicating we want to return incorrect result
+        sub = create_report()
+        return web.json_response(data=sub, status=200)
 
     credential_response = _check_credentials(auth)
     if credential_response is not None:
@@ -211,6 +230,11 @@ async def _reports_get_response(request: web.Request) -> web.Response:
 async def _programs_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
 
+    if request.headers.get("X-result-type") == "dict":
+        # testing header indicating we want to return incorrect result
+        sub = create_program("0", "HB", "Heartbeat")
+        return web.json_response(data=sub, status=200)
+
     credential_response = _check_credentials(auth)
     if credential_response is not None:
         return credential_response
@@ -241,6 +265,11 @@ async def _programs_get_response(request: web.Request) -> web.Response:
 
 async def _subscriptions_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
+
+    if request.headers.get("X-result-type") == "dict":
+        # testing header indicating we want to return incorrect result
+        sub = create_subscription(sid="13", pid="77")
+        return web.json_response(data=sub, status=200)
 
     credential_response = _check_credentials(auth)
     if credential_response is not None:

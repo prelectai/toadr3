@@ -1,9 +1,9 @@
 import aiohttp
 
-from toadr3 import AccessToken, ToadrError
+from toadr3 import AccessToken
 from toadr3.models import Program, TargetType
 
-from ._internal import ParameterBuilder, SkipAndLimit, Targets
+from ._internal import ParameterBuilder, SkipAndLimit, Targets, get_query
 
 _GET_PARAMS_BUILDER = ParameterBuilder(Targets, SkipAndLimit)
 
@@ -68,40 +68,12 @@ async def get_programs(
     _GET_PARAMS_BUILDER.check_query_parameters(args)
     params = _GET_PARAMS_BUILDER.build_query_parameters(args, extra_params)
 
-    headers: dict[str, str] = {}
-    if custom_headers is not None:
-        headers |= custom_headers
+    data = await get_query(session, f"{vtn_url}/programs", access_token, params, custom_headers)
 
-    if access_token is not None:
-        headers["Authorization"] = f"Bearer {access_token.token}"
+    if not isinstance(data, list):
+        raise ValueError(f"Expected result to be a list. Got {type(data)} instead.")
 
-    vtn_url = vtn_url.rstrip("/")
-
-    async with session.get(f"{vtn_url}/programs", params=params, headers=headers) as response:
-        if not response.ok:
-            match response.status:
-                case 400 | 403 | 500:
-                    json_response = await response.json()  # JSON should be of type Problem schema
-                    message = json_response["title"]
-
-                    if "detail" in json_response:
-                        message = f"{message} - {json_response['detail']}"
-
-                    raise ToadrError(
-                        message,
-                        status_code=response.status,
-                        reason=response.reason,
-                        headers=response.headers,  # type: ignore[arg-type]
-                        json_response=json_response,
-                    )
-                case _:
-                    raise RuntimeError(
-                        f"Unexpected response status: {response.status} {response.reason}"
-                    )
-
-        data = await response.json()
-
-        result = []
-        for program in data:
-            result.append(Program.model_validate(program))
-        return result
+    result = []
+    for program in data:
+        result.append(Program.model_validate(program))
+    return result
