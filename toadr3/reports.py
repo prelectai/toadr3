@@ -1,6 +1,6 @@
 import aiohttp
 
-from ._internal import ClientName, EventID, ParameterBuilder, ProgramID, SkipAndLimit
+from ._internal import ClientName, EventID, ParameterBuilder, ProgramID, SkipAndLimit, get_query
 from .access_token import AccessToken
 from .exceptions import ToadrError
 from .models import Report
@@ -144,41 +144,12 @@ async def get_reports(
     }
     _GET_PARAMS_BUILDER.check_query_parameters(args)
     params = _GET_PARAMS_BUILDER.build_query_parameters(args, extra_params)
+    data = await get_query(session, f"{vtn_url}/reports", access_token, params, custom_headers)
 
-    headers: dict[str, str] = {}
-    if custom_headers is not None:
-        headers |= custom_headers
+    if not isinstance(data, list):
+        raise ValueError(f"Expected result to be a list. Got {type(data)} instead.")
 
-    if access_token is not None:
-        headers["Authorization"] = f"Bearer {access_token.token}"
-
-    vtn_url = vtn_url.rstrip("/")
-
-    async with session.get(f"{vtn_url}/reports", params=params, headers=headers) as response:
-        if not response.ok:
-            match response.status:
-                case 400 | 403 | 500:
-                    json_response = await response.json()  # JSON should be of type Problem schema
-                    message = json_response["title"]
-
-                    if "detail" in json_response:
-                        message = f"{message} - {json_response['detail']}"
-
-                    raise ToadrError(
-                        message,
-                        status_code=response.status,
-                        reason=response.reason,
-                        headers=response.headers,  # type: ignore[arg-type]
-                        json_response=json_response,
-                    )
-                case _:
-                    raise RuntimeError(
-                        f"Unexpected response status: {response.status} {response.reason}"
-                    )
-
-        data = await response.json()
-
-        result = []
-        for report in data:
-            result.append(Report.model_validate(report))
-        return result
+    result = []
+    for report in data:
+        result.append(Report.model_validate(report))
+    return result

@@ -1,3 +1,4 @@
+import pytest
 from aiohttp import ClientSession
 
 from toadr3 import AccessToken, get_events, models
@@ -28,3 +29,9 @@ async def test_events_with_target_values_and_str_target_type(
 
     assert len(events) == 2
     assert {event.program_id for event in events} == {"34", "35"}
+
+
+async def test_events_wrong_result_type(session: ClientSession, token: AccessToken) -> None:
+    msg = "Expected result to be a list. Got <class 'dict'> instead."
+    with pytest.raises(ValueError, match=msg):
+        _ = await get_events(session, "", token, custom_headers={"X-result-type": "dict"})
