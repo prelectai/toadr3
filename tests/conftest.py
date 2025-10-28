@@ -2,35 +2,16 @@ import traceback
 from collections.abc import Awaitable, Callable
 
 import pytest
+from _common_test_utils import create_problem_response
+from _event_response import events_get_response
+from _programs_response import programs_get_response
+from _reports_response import reports_get_response, reports_post_response
+from _subscriptions_response import subscriptions_get_response, subscriptions_post_response
+from _token_response import token_post_response
 from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
-from mock_vtn_server import MockVTNServer
-from testdata import (
-    create_event,
-    create_events,
-    create_program,
-    create_programs,
-    create_report,
-    create_reports,
-    create_subscription,
-    create_subscriptions,
-)
 
 from toadr3 import AccessToken, OAuthScopeConfig, ToadrClient
-from toadr3.models import Problem
-
-
-def create_problem_response(title: str, status: int, detail: str) -> web.Response:
-    """Create a web.Response with a Problem JSON body."""
-    return web.json_response(
-        data=Problem(
-            title=title,
-            status=status,
-            detail=detail,
-        ),
-        status=status,
-        dumps=Problem.model_dump_json,
-    )
 
 
 async def _exception_wrapper(
@@ -63,16 +44,7 @@ async def _exception_wrapper(
 
 
 @pytest.fixture
-async def client(aiohttp_client: AiohttpClient) -> ToadrClient:
-    vtn_server = MockVTNServer()
-
-    app = web.Application()
-    app.router.add_post(
-        "/oauth_url/token_endpoint", await _exception_wrapper(vtn_server.token_post_response)
-    )
-
-    session = await aiohttp_client(app)
-
+async def client(session: ClientSession) -> ToadrClient:
     oauth_config = OAuthScopeConfig(
         token_url="/oauth_url/token_endpoint",
         grant_type="client_credentials",
@@ -83,334 +55,21 @@ async def client(aiohttp_client: AiohttpClient) -> ToadrClient:
     return ToadrClient(
         vtn_url="vtn_url",
         oauth_config=oauth_config,
-        session=session,  # type: ignore
+        session=session,
     )
-
-
-def _check_extra_params(x_parity: str | None) -> web.Response | None:
-    """Check if the x-parity parameter is valid."""
-    if x_parity is not None and x_parity not in ["even", "odd"]:
-        return create_problem_response(
-            title="Bad Request",
-            status=400,
-            detail=f"Invalid value for x-parity: {x_parity}",
-        )
-    return None
-
-
-def _check_custom_header(custom_header: str | None) -> web.Response | None:
-    """Check if the custom header is valid."""
-    if custom_header is not None and custom_header != "CustomValue":
-        return create_problem_response(
-            title="Bad Request",
-            status=400,
-            detail=f"Invalid value for X-Custom-Header: {custom_header}",
-        )
-    return None
-
-
-def _check_credentials(auth: str | None) -> web.Response | None:
-    """Check if the credentials are valid."""
-    if auth is None or not auth.startswith("Bearer ") or auth.split(" ")[1] != "token":
-        return create_problem_response(
-            title="Forbidden",
-            status=403,
-            detail="Invalid or missing access token",
-        )
-    return None
-
-
-def _filter(
-    items: list[dict[str, str]], skip: str | None, limit: str | None, x_parity: str | None
-) -> list[dict[str, str]]:
-    """Filter the items based on skip, limit and x_parity parameters."""
-    if skip is not None:
-        int_skip = int(skip)
-        items = items[int_skip:]
-
-    if limit is not None:
-        int_limit = int(limit)
-        items = items[:int_limit]
-
-    if x_parity is not None:
-        parity = 0 if x_parity == "even" else 1
-        items = [item for item in items if int(item["id"]) % 2 == parity]
-
-    return items
-
-
-async def _events_get_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if request.headers.get("X-result-type") == "dict":
-        # testing header indicating we want to return incorrect result
-        sub = create_event()
-        return web.json_response(data=sub, status=200)
-
-    credential_response = _check_credentials(auth)
-    if credential_response is not None:
-        return credential_response
-
-    program_id = request.query.get("programID", None)
-    target_type = request.query.get("targetType", None)
-    target_values = request.query.getall("targetValues", None)
-    skip = request.query.get("skip", None)
-    limit = request.query.get("limit", None)
-    x_parity = request.query.get("x-parity", None)
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    # Check if x-parity is valid here since it is not part of the API
-    extra_param_response = _check_extra_params(x_parity)
-    if extra_param_response is not None:
-        return extra_param_response
-
-    extra_header_response = _check_custom_header(custom_header)
-    if extra_header_response is not None:
-        return extra_header_response
-
-    events = create_events()
-
-    if program_id is not None:
-        events = [event for event in events if event["programID"] == program_id]
-
-    if target_type == "RESOURCE_NAME" and target_values is not None:
-        events = [event for event in events if event["targets"][0]["values"] == target_values]
-
-    events = _filter(events, skip, limit, x_parity)
-
-    return web.json_response(data=events)
-
-
-async def _reports_get_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if request.headers.get("X-result-type") == "dict":
-        # testing header indicating we want to return incorrect result
-        sub = create_report()
-        return web.json_response(data=sub, status=200)
-
-    credential_response = _check_credentials(auth)
-    if credential_response is not None:
-        return credential_response
-
-    program_id = request.query.get("programID", None)
-    event_id = request.query.get("eventID", None)
-    client_name = request.query.get("clientName", None)
-    skip = request.query.get("skip", None)
-    limit = request.query.get("limit", None)
-    x_parity = request.query.get("x-parity", None)
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    # Check if x-parity is valid here since it is not part of the API
-    extra_param_response = _check_extra_params(x_parity)
-    if extra_param_response is not None:
-        return extra_param_response
-
-    # If custom header is set but not set to "CustomValue" return 400
-    extra_header_response = _check_custom_header(custom_header)
-    if extra_header_response is not None:
-        return extra_header_response
-
-    reports = create_reports()
-
-    if program_id is not None:
-        reports = [report for report in reports if report["programID"] == program_id]
-
-    if event_id is not None:
-        reports = [report for report in reports if report["eventID"] == event_id]
-
-    if client_name is not None:
-        reports = [report for report in reports if report["clientName"] == client_name]
-
-    reports = _filter(reports, skip, limit, x_parity)
-
-    return web.json_response(data=reports)
-
-
-async def _reports_post_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if auth is None:
-        data = {
-            "status": 403,
-            "title": "Forbidden",
-        }
-        return web.json_response(data=data, status=403)
-
-    report_data = await request.json()
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    if report_data["eventID"] == "35" or report_data["id"] == "123":
-        data = {
-            "status": 409,
-            "title": "Conflict",
-            "detail": "The report already exists",
-        }
-        return web.json_response(data=data, status=409)
-
-    # If custom header is not set to "CustomValue" return 400
-    if custom_header is not None and custom_header != "CustomValue":
-        return web.json_response(
-            data={
-                "status": 400,
-                "title": "Bad Request",
-                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-            },
-            status=400,
-        )
-
-    # Return the report data with some additional fields
-    report_data["id"] = "123"
-    report_data["createdDateTime"] = "2024-09-30T12:12:34Z"
-    report_data["modificationDateTime"] = "2024-09-30T12:12:35Z"
-
-    return web.json_response(data=report_data)
-
-
-async def _programs_get_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if request.headers.get("X-result-type") == "dict":
-        # testing header indicating we want to return incorrect result
-        sub = create_program("0", "HB", "Heartbeat")
-        return web.json_response(data=sub, status=200)
-
-    credential_response = _check_credentials(auth)
-    if credential_response is not None:
-        return credential_response
-
-    _target_type = request.query.get("targetType", None)
-    _target_values = request.query.getall("targetValues", None)
-    skip = request.query.get("skip", None)
-    limit = request.query.get("limit", None)
-    x_parity = request.query.get("x-parity", None)
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    # Check if x-parity is valid here since it is not part of the API
-    extra_param_response = _check_extra_params(x_parity)
-    if extra_param_response is not None:
-        return extra_param_response
-
-    # If custom header is set but not set to "CustomValue" return 400
-    extra_header_response = _check_custom_header(custom_header)
-    if extra_header_response is not None:
-        return extra_header_response
-
-    programs = create_programs()
-
-    programs = _filter(programs, skip, limit, x_parity)
-
-    return web.json_response(data=programs, status=200)
-
-
-async def _subscriptions_get_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if request.headers.get("X-result-type") == "dict":
-        # testing header indicating we want to return incorrect result
-        sub = create_subscription(sid="13", pid="77")
-        return web.json_response(data=sub, status=200)
-
-    credential_response = _check_credentials(auth)
-    if credential_response is not None:
-        return credential_response
-
-    program_id = request.query.get("programID", None)
-    client_name = request.query.get("clientName", None)
-    _target_type = request.query.get("targetType", None)
-    _target_values = request.query.getall("targetValues", None)
-    objects = request.query.getall("objects", None)
-    skip = request.query.get("skip", None)
-    limit = request.query.get("limit", None)
-    x_parity = request.query.get("x-parity", None)
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    # Check if x-parity is valid here since it is not part of the API
-    extra_param_response = _check_extra_params(x_parity)
-    if extra_param_response is not None:
-        return extra_param_response
-
-    # If custom header is set but not set to "CustomValue" return 400
-    extra_header_response = _check_custom_header(custom_header)
-    if extra_header_response is not None:
-        return extra_header_response
-
-    subs = create_subscriptions()
-
-    if program_id is not None:
-        subs = [sub for sub in subs if sub["programID"] == program_id]
-
-    if client_name is not None:
-        subs = [sub for sub in subs if sub["clientName"] == client_name]
-
-    if objects is not None:
-        result = []
-        for sub in subs:
-            object_names = set()
-            for obj_op in sub["objectOperations"]:
-                for object_name in obj_op["objects"]:
-                    object_names.add(object_name)
-
-            if any(object_name in object_names for object_name in objects):
-                result.append(sub)
-
-        subs = result
-
-    subs = _filter(subs, skip, limit, x_parity)
-
-    return web.json_response(data=subs, status=200)
-
-
-async def _subscriptions_post_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if auth is None:
-        data = {
-            "status": 403,
-            "title": "Forbidden",
-        }
-        return web.json_response(data=data, status=403)
-
-    subscription_data = await request.json()
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    if subscription_data["programID"] == "35" or subscription_data["id"] == "123":
-        data = {
-            "status": 409,
-            "title": "Conflict",
-            "detail": "The subscription already exists",
-        }
-        return web.json_response(data=data, status=409)
-
-    # If custom header is not set to "CustomValue" return 400
-    if custom_header is not None and custom_header != "CustomValue":
-        return web.json_response(
-            data={
-                "status": 400,
-                "title": "Bad Request",
-                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-            },
-            status=400,
-        )
-
-    # Return the report data with some additional fields
-    subscription_data["id"] = "123"
-    subscription_data["createdDateTime"] = "2024-09-30T12:12:34Z"
-    subscription_data["modificationDateTime"] = "2024-09-30T12:12:35Z"
-
-    return web.json_response(data=subscription_data)
 
 
 @pytest.fixture
 async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
-    app.router.add_get("/events", await _exception_wrapper(_events_get_response))
-    app.router.add_get("/reports", await _exception_wrapper(_reports_get_response))
-    app.router.add_post("/reports", await _exception_wrapper(_reports_post_response))
-    app.router.add_get("/programs", await _exception_wrapper(_programs_get_response))
-    app.router.add_get("/subscriptions", await _exception_wrapper(_subscriptions_get_response))
-    app.router.add_post("/subscriptions", await _exception_wrapper(_subscriptions_post_response))
+    app.router.add_post("/oauth_url/token_endpoint", await _exception_wrapper(token_post_response))
+    app.router.add_get("/events", await _exception_wrapper(events_get_response))
+    app.router.add_get("/reports", await _exception_wrapper(reports_get_response))
+    app.router.add_post("/reports", await _exception_wrapper(reports_post_response))
+    app.router.add_get("/programs", await _exception_wrapper(programs_get_response))
+    app.router.add_get("/subscriptions", await _exception_wrapper(subscriptions_get_response))
+    app.router.add_post("/subscriptions", await _exception_wrapper(subscriptions_post_response))
 
     return await aiohttp_client(app)  # type: ignore[return-value]
 
