@@ -37,6 +37,8 @@ async def post_report(
 
     Raises
     ------
+    ValueError
+        If the query parameters are invalid.
     toadr3.ToadrError
         If the request to the VTN fails. Specifically, if the
         response status is 400, 403, 409, or 500,
