@@ -1,4 +1,6 @@
 import asyncio
+from types import TracebackType
+from typing import Literal, Self
 
 from aiohttp import ClientSession
 
@@ -34,6 +36,7 @@ class ToadrClient:
         self._session = session if session is not None else ClientSession()
         self._token_lock = asyncio.Lock()
         self._token: toadr3.AccessToken | None = None
+        self._closed = False
 
     @property
     def client_session(self) -> ClientSession:
@@ -44,6 +47,11 @@ class ToadrClient:
     def vtn_url(self) -> str:
         """VTN server URL."""
         return self._vtn_url
+
+    @property
+    def closed(self) -> bool:
+        """Whether or not the client is closed."""
+        return self._closed
 
     async def _fetch_token(self) -> toadr3.AccessToken | None:
         """Fetch an access token from the OAuth2 server."""
@@ -63,3 +71,20 @@ class ToadrClient:
     async def close(self) -> None:
         """Close the client session."""
         await self._session.close()
+        self._closed = True
+
+    async def __aenter__(self) -> Self:
+        """Enter async context."""
+        if self.closed:
+            raise RuntimeError("Client is closed")
+        return self
+
+    async def __aexit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
+    ) -> Literal[False]:
+        """Exit async context."""
+        await self.close()
+        return False
