@@ -27,7 +27,14 @@ Currently, it supports the following operations:
   - Filter by event id
   - Filter by client name
   - Limit and skip for pagination
+- List subscriptions [GET]
+  - Filter by program id
+  - Filter by client name
+  - Filter by target type and target values
+  - Filter by objects
+  - Limit and skip for pagination
 - Create a report [POST]
+- Create a subscription [POST]
 - Create a report object based on an initial event
 
 ## Example

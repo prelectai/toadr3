@@ -1,8 +1,7 @@
 import datetime
 
 import pytest
-from aiohttp import ClientSession, web
-from aiohttp.pytest_plugin import AiohttpClient
+from aiohttp import ClientSession
 from testdata import create_report
 
 from toadr3 import AccessToken, ToadrError, post_report
@@ -13,64 +12,6 @@ async def test_post_report_required() -> None:
     msg = "report is required"
     with pytest.raises(ValueError, match=msg):
         _ = await post_report(None, "", None, None)  # type: ignore[arg-type]
-
-
-# ------------------------------------------------------------
-# Tests that need the report session and a token.
-# Mostly the tests checks that the query parameters are
-# correctly passed to the request.
-# ------------------------------------------------------------
-async def reports_post_response(request: web.Request) -> web.Response:
-    auth = request.headers.get("Authorization", None)
-
-    if auth is None:
-        data = {
-            "status": 403,
-            "title": "Forbidden",
-        }
-        return web.json_response(data=data, status=403)
-
-    report_data = await request.json()
-    custom_header = request.headers.get("X-Custom-Header", None)
-
-    if report_data["eventID"] == "35" or report_data["id"] == "123":
-        data = {
-            "status": 409,
-            "title": "Conflict",
-            "detail": "The report already exists",
-        }
-        return web.json_response(data=data, status=409)
-
-    # If custom header is not set to "CustomValue" return 400
-    if custom_header is not None and custom_header != "CustomValue":
-        return web.json_response(
-            data={
-                "status": 400,
-                "title": "Bad Request",
-                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-            },
-            status=400,
-        )
-
-    # Return the report data with some additional fields
-    report_data["id"] = "123"
-    report_data["createdDateTime"] = "2024-09-30T12:12:34Z"
-    report_data["modificationDateTime"] = "2024-09-30T12:12:35Z"
-
-    return web.json_response(data=report_data)
-
-
-@pytest.fixture
-async def session(aiohttp_client: AiohttpClient) -> ClientSession:
-    """Create the default client with the default web app."""
-    app = web.Application()
-    app.router.add_post("/reports", reports_post_response)
-    return await aiohttp_client(app)  # type: ignore[return-value]
-
-
-@pytest.fixture
-async def token() -> AccessToken:
-    return AccessToken("token", 3600)
 
 
 async def test_post_report_forbidden(session: ClientSession) -> None:
@@ -121,3 +62,8 @@ async def test_post_report_invalid_custom_header(
         _ = await post_report(
             session, "", token, report, custom_headers={"X-Custom-Header": "InvalidValue"}
         )
+
+
+async def test_post_report_is_none(session: ClientSession, token: AccessToken) -> None:
+    with pytest.raises(ValueError, match="report is required"):
+        _ = await post_report(session, "", token, None)  # type: ignore[arg-type]

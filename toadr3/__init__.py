@@ -12,7 +12,7 @@ from .events import get_events
 from .exceptions import ToadrError
 from .programs import get_programs
 from .reports import get_reports, post_report
-from .subscriptions import get_subscriptions
+from .subscriptions import get_subscriptions, post_subscription
 
 __all__ = [
     "AccessToken",
@@ -29,4 +29,5 @@ __all__ = [
     "get_subscriptions",
     "models",
     "post_report",
+    "post_subscription",
 ]

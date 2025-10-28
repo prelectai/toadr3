@@ -227,6 +227,46 @@ async def _reports_get_response(request: web.Request) -> web.Response:
     return web.json_response(data=reports)
 
 
+async def _reports_post_response(request: web.Request) -> web.Response:
+    auth = request.headers.get("Authorization", None)
+
+    if auth is None:
+        data = {
+            "status": 403,
+            "title": "Forbidden",
+        }
+        return web.json_response(data=data, status=403)
+
+    report_data = await request.json()
+    custom_header = request.headers.get("X-Custom-Header", None)
+
+    if report_data["eventID"] == "35" or report_data["id"] == "123":
+        data = {
+            "status": 409,
+            "title": "Conflict",
+            "detail": "The report already exists",
+        }
+        return web.json_response(data=data, status=409)
+
+    # If custom header is not set to "CustomValue" return 400
+    if custom_header is not None and custom_header != "CustomValue":
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+            },
+            status=400,
+        )
+
+    # Return the report data with some additional fields
+    report_data["id"] = "123"
+    report_data["createdDateTime"] = "2024-09-30T12:12:34Z"
+    report_data["modificationDateTime"] = "2024-09-30T12:12:35Z"
+
+    return web.json_response(data=report_data)
+
+
 async def _programs_get_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
 
@@ -321,14 +361,56 @@ async def _subscriptions_get_response(request: web.Request) -> web.Response:
     return web.json_response(data=subs, status=200)
 
 
+async def _subscriptions_post_response(request: web.Request) -> web.Response:
+    auth = request.headers.get("Authorization", None)
+
+    if auth is None:
+        data = {
+            "status": 403,
+            "title": "Forbidden",
+        }
+        return web.json_response(data=data, status=403)
+
+    subscription_data = await request.json()
+    custom_header = request.headers.get("X-Custom-Header", None)
+
+    if subscription_data["programID"] == "35" or subscription_data["id"] == "123":
+        data = {
+            "status": 409,
+            "title": "Conflict",
+            "detail": "The subscription already exists",
+        }
+        return web.json_response(data=data, status=409)
+
+    # If custom header is not set to "CustomValue" return 400
+    if custom_header is not None and custom_header != "CustomValue":
+        return web.json_response(
+            data={
+                "status": 400,
+                "title": "Bad Request",
+                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+            },
+            status=400,
+        )
+
+    # Return the report data with some additional fields
+    subscription_data["id"] = "123"
+    subscription_data["createdDateTime"] = "2024-09-30T12:12:34Z"
+    subscription_data["modificationDateTime"] = "2024-09-30T12:12:35Z"
+
+    return web.json_response(data=subscription_data)
+
+
 @pytest.fixture
 async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
     app.router.add_get("/events", await _exception_wrapper(_events_get_response))
     app.router.add_get("/reports", await _exception_wrapper(_reports_get_response))
+    app.router.add_post("/reports", await _exception_wrapper(_reports_post_response))
     app.router.add_get("/programs", await _exception_wrapper(_programs_get_response))
     app.router.add_get("/subscriptions", await _exception_wrapper(_subscriptions_get_response))
+    app.router.add_post("/subscriptions", await _exception_wrapper(_subscriptions_post_response))
 
     return await aiohttp_client(app)  # type: ignore[return-value]
 

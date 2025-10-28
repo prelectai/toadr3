@@ -1,6 +1,6 @@
 import aiohttp
 
-from toadr3 import AccessToken
+from toadr3 import AccessToken, ToadrError
 from toadr3.models import ObjectType, Subscription, TargetType
 
 from ._internal import (
@@ -101,3 +101,81 @@ async def get_subscriptions(
     for subscription in data:
         result.append(Subscription.model_validate(subscription))
     return result
+
+
+async def post_subscription(
+    session: aiohttp.ClientSession,
+    vtn_url: str,
+    access_token: AccessToken | None,
+    subscription: Subscription,
+    custom_headers: dict[str, str] | None = None,
+) -> Subscription:
+    """Create a new subscription.
+
+    Parameters
+    ----------
+    session: aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    vtn_url: str
+        The URL of the VTN.
+    access_token: AccessToken | None
+        The access token to use for the request, use None if no token is required.
+    subscription: Subscription
+        The subscription to create.
+    custom_headers: dict[str, str] | None
+        Extra headers to include in the request.
+
+    Returns
+    -------
+    Subscription
+        The subscription object created by the VTN.
+
+    Raises
+    ------
+    ValueError
+        If the query parameters are invalid.
+    toadr3.ToadrException
+        If the request to the VTN fails. Specifically, if the response status is 400, 403, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
+
+    """
+    if subscription is None:
+        raise ValueError("subscription is required")
+
+    headers: dict[str, str] = {}
+    if custom_headers is not None:
+        headers |= custom_headers
+
+    if access_token is not None:
+        headers["Authorization"] = f"Bearer {access_token.token}"
+
+    vtn_url = vtn_url.rstrip("/")
+
+    data = subscription.model_dump_json(exclude_none=True, exclude_unset=True)
+    headers["Content-Type"] = "application/json"
+
+    async with session.post(f"{vtn_url}/subscriptions", headers=headers, data=data) as response:
+        if not response.ok:
+            match response.status:
+                case 400 | 403 | 409 | 500:
+                    json_response = await response.json()  # JSON should be of type Problem schema
+                    message = json_response["title"]
+
+                    if "detail" in json_response:
+                        message = f"{message} - {json_response['detail']}"
+
+                    raise ToadrError(
+                        message,
+                        status_code=response.status,
+                        reason=response.reason,
+                        headers=response.headers,  # type: ignore[arg-type]
+                        json_response=json_response,
+                    )
+                case _:
+                    raise RuntimeError(
+                        f"Unexpected response status: {response.status} {response.reason}"
+                    )
+
+        data = await response.json()
+        return Subscription.model_validate(data)
