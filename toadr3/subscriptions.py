@@ -1,6 +1,6 @@
 import aiohttp
 
-from toadr3 import AccessToken, ToadrError
+from toadr3 import AccessToken
 from toadr3.models import ObjectType, Subscription, TargetType
 
 from ._internal import (
@@ -10,6 +10,7 @@ from ._internal import (
     ProgramID,
     SkipAndLimit,
     Targets,
+    default_error_handler,
     get_query,
 )
 
@@ -159,23 +160,9 @@ async def post_subscription(
         if not response.ok:
             match response.status:
                 case 400 | 403 | 409 | 500:
-                    json_response = await response.json()  # JSON should be of type Problem schema
-                    message = json_response["title"]
-
-                    if "detail" in json_response:
-                        message = f"{message} - {json_response['detail']}"
-
-                    raise ToadrError(
-                        message,
-                        status_code=response.status,
-                        reason=response.reason,
-                        headers=response.headers,  # type: ignore[arg-type]
-                        json_response=json_response,
-                    )
+                    await default_error_handler(response)
                 case _:
-                    raise RuntimeError(
-                        f"Unexpected response status: {response.status} {response.reason}"
-                    )
+                    await default_error_handler(response, "Unexpected error status!")
 
         data = await response.json()
         return Subscription.model_validate(data)

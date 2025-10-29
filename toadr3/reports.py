@@ -1,8 +1,15 @@
 import aiohttp
 
-from ._internal import ClientName, EventID, ParameterBuilder, ProgramID, SkipAndLimit, get_query
+from ._internal import (
+    ClientName,
+    EventID,
+    ParameterBuilder,
+    ProgramID,
+    SkipAndLimit,
+    default_error_handler,
+    get_query,
+)
 from .access_token import AccessToken
-from .exceptions import ToadrError
 from .models import Report
 
 _GET_PARAMS_BUILDER = ParameterBuilder(ProgramID, EventID, ClientName, SkipAndLimit)
@@ -64,23 +71,9 @@ async def post_report(
         if not response.ok:
             match response.status:
                 case 400 | 403 | 409 | 500:
-                    json_response = await response.json()  # JSON should be of type Problem schema
-                    message = json_response["title"]
-
-                    if "detail" in json_response:
-                        message = f"{message} - {json_response['detail']}"
-
-                    raise ToadrError(
-                        message,
-                        status_code=response.status,
-                        reason=response.reason,
-                        headers=response.headers,  # type: ignore[arg-type]
-                        json_response=json_response,
-                    )
+                    await default_error_handler(response)
                 case _:
-                    raise RuntimeError(
-                        f"Unexpected response status: {response.status} {response.reason}"
-                    )
+                    await default_error_handler(response, "Unexpected error status!")
 
         data = await response.json()
         return Report.model_validate(data)

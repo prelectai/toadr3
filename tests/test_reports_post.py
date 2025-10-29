@@ -31,7 +31,7 @@ async def test_post_report_conflict(client: ToadrClient) -> None:
     data["eventID"] = "35"
     report = Report.model_validate(data)
 
-    msg = "Conflict - The report already exists"
+    msg = "Conflict 409 - The report already exists"
     with pytest.raises(ToadrError, match=msg):
         _ = await post_report(session, vtn_url, token, report)
 
@@ -88,7 +88,7 @@ async def test_post_report_invalid_custom_header(client: ToadrClient) -> None:
 
     report = Report.model_validate(create_report())
 
-    msg = "Bad Request - Invalid value for X-Custom-Header: InvalidValue"
+    msg = "Bad Request 400 - Invalid value for X-Custom-Header: InvalidValue"
     with pytest.raises(ToadrError, match=msg):
         _ = await post_report(
             session, vtn_url, token, report, custom_headers={"X-Custom-Header": "InvalidValue"}
@@ -112,3 +112,19 @@ async def test_post_report_is_none(client: ToadrClient) -> None:
 
     with pytest.raises(ValueError, match=msg):
         _ = await client.post_report(None)  # type: ignore[arg-type]
+
+
+async def test_post_report_unauthorized(client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    report = Report.model_validate(create_report())
+    report.client_name = "Unauthorized"
+
+    msg = "Unauthorized 401 - You are not authorized to perform this action"
+    with pytest.raises(ToadrError, match=msg):
+        _ = await post_report(session, vtn_url, token, report)
+
+    with pytest.raises(ToadrError, match=msg):
+        _ = await client.post_report(report)

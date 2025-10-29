@@ -31,7 +31,7 @@ async def test_post_subscription_conflict(client: ToadrClient) -> None:
     data = create_subscription(sid="123", pid="35")
     subscription = Subscription.model_validate(data)
 
-    msg = "Conflict - The subscription already exists"
+    msg = "Conflict 409 - The subscription already exists"
     with pytest.raises(ToadrError, match=msg):
         _ = await post_subscription(session, vtn_url, token, subscription)
 
@@ -89,7 +89,7 @@ async def test_post_subscription_invalid_custom_header(client: ToadrClient) -> N
 
     subscription = Subscription.model_validate(create_subscription(sid="6", pid="77"))
 
-    msg = "Bad Request - Invalid value for X-Custom-Header: InvalidValue"
+    msg = "Bad Request 400 - Invalid value for X-Custom-Header: InvalidValue"
     with pytest.raises(ToadrError, match=msg):
         _ = await post_subscription(
             session,
