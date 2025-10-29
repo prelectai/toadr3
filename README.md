@@ -42,11 +42,10 @@ A small example of how to list programs and events and create a report:
 
 ```python
 import asyncio
-import aiohttp
 import toadr3
 
 
-QA_OAUTH_CONFIG = toadr3.OAuthConfig(
+OAUTH_CONFIG = toadr3.OAuthConfig(
     token_url="",          # URL to the OAuth2 token endpoint
     grant_type="",         # OAuth2 grant type
     claims={"scope": ""},  # OAuth2 claims, for example 'scope'
@@ -57,7 +56,7 @@ QA_OAUTH_CONFIG = toadr3.OAuthConfig(
 VTN_URL = ""  # URL to the VTN
 
 async def main():
-  async with toadr3.ToadrClient(vtn_url=VTN_URL, oauth_config=QA_OAUTH_CONFIG) as client:
+  async with toadr3.ToadrClient(vtn_url=VTN_URL, oauth_config=OAUTH_CONFIG) as client:
     programs = await client.get_programs()
     for program in programs:
       print(f"Program: ID={program.id}, Name={program.program_name}")
