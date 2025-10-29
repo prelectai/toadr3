@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
@@ -15,6 +17,12 @@ class DocstringBaseModel(BaseModel):
         validate_by_alias=True,
         validate_by_name=True,
     )
+
+    def model_post_init(self, _context: Any, /) -> None:  # noqa: ANN401
+        """Call after model class has been initialized."""
+        if hasattr(self, "object_type"):
+            # We want the discriminator 'objectType' to be part of the JSON during dumping.
+            self.model_fields_set.add("object_type")
 
     def __str__(self) -> str:
         """Return a string representation of the object."""
