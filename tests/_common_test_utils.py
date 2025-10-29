@@ -1,6 +1,44 @@
+from typing import Any, Protocol
+
+import aiohttp
+import pytest
 from aiohttp import web
 
-from toadr3.models import Problem
+from toadr3 import AccessToken, ToadrClient
+from toadr3.models import DocstringBaseModel, Problem
+
+
+class QueryFunction(Protocol):
+    """A protocol for query functions like get_events and get_programs."""
+
+    async def __call__(
+        self,
+        session: aiohttp.ClientSession | None,
+        vtn_url: str | None,
+        access_token: AccessToken | None,
+        **kwargs: object,
+    ) -> list[DocstringBaseModel]:
+        """Signature with common parameters for query functions."""
+
+    @property
+    def __name__(self) -> str:
+        """Return the name of the query function."""
+
+
+async def check_functions_raises(
+    function: QueryFunction,
+    kwargs: dict[str, Any],
+    msg: str,
+    client: ToadrClient,
+    exception_type: type[Exception],
+) -> None:
+    """Check that the query function and the equivalent client function is valid."""
+    token = await client.token
+    with pytest.raises(exception_type, match=msg):
+        _ = await function(client.client_session, client.vtn_url, token, **kwargs)
+
+    with pytest.raises(exception_type, match=msg):
+        _ = await getattr(client, function.__name__)(**kwargs)
 
 
 def create_problem_response(title: str, status: int, detail: str) -> web.Response:
@@ -44,7 +82,7 @@ def check_credentials(auth: str | None) -> web.Response | None:
         return create_problem_response(
             title="Forbidden",
             status=403,
-            detail="Invalid or missing access token",
+            detail=f"Invalid or missing access token: '{auth}' != 'token'",
         )
     return None
 

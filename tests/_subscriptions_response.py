@@ -88,15 +88,19 @@ async def subscriptions_post_response(request: web.Request) -> web.Response:
         return web.json_response(data=data, status=409)
 
     # If custom header is not set to "CustomValue" return 400
-    if custom_header is not None and custom_header != "CustomValue":
-        return web.json_response(
-            data={
-                "status": 400,
-                "title": "Bad Request",
-                "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-            },
-            status=400,
-        )
+    if custom_header is not None:
+        match custom_header:
+            case "CustomValue":
+                subscription_data["clientName"] = "CustomClientName"
+            case _:
+                return web.json_response(
+                    data={
+                        "status": 400,
+                        "title": "Bad Request",
+                        "detail": f"Invalid value for X-Custom-Header: {custom_header}",
+                    },
+                    status=400,
+                )
 
     # Return the report data with some additional fields
     subscription_data["id"] = "123"

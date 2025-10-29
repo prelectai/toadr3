@@ -22,7 +22,7 @@ async def token_post_response(request: web.Request) -> web.Response:
             result = {
                 "token_type": "Bearer",
                 "expires_in": 3599,
-                "access_token": "test_token",
+                "access_token": "token",
             }
             status = 200
         case ("custom_grant", "test_client_id", "test_client_secret", "test_scope"):
