@@ -63,13 +63,34 @@ async def client(session: ClientSession) -> ToadrClient:
 async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     """Create the default client with the default web app."""
     app = web.Application()
-    app.router.add_post("/oauth_url/token_endpoint", await _exception_wrapper(token_post_response))
-    app.router.add_get("/events", await _exception_wrapper(events_get_response))
-    app.router.add_get("/reports", await _exception_wrapper(reports_get_response))
-    app.router.add_post("/reports", await _exception_wrapper(reports_post_response))
-    app.router.add_get("/programs", await _exception_wrapper(programs_get_response))
-    app.router.add_get("/subscriptions", await _exception_wrapper(subscriptions_get_response))
-    app.router.add_post("/subscriptions", await _exception_wrapper(subscriptions_post_response))
+    app.router.add_post(
+        path="/oauth_url/token_endpoint",
+        handler=await _exception_wrapper(token_post_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/events",
+        handler=await _exception_wrapper(events_get_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/reports",
+        handler=await _exception_wrapper(reports_get_response),
+    )
+    app.router.add_post(
+        path="/vtn_url/reports",
+        handler=await _exception_wrapper(reports_post_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/programs",
+        handler=await _exception_wrapper(programs_get_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/subscriptions",
+        handler=await _exception_wrapper(subscriptions_get_response),
+    )
+    app.router.add_post(
+        path="/vtn_url/subscriptions",
+        handler=await _exception_wrapper(subscriptions_post_response),
+    )
 
     return await aiohttp_client(app)  # type: ignore[return-value]
 

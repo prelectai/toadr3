@@ -11,7 +11,7 @@ async def test_token(client: toadr3.ToadrClient) -> None:
     assert isinstance(token, toadr3.AccessToken)
     assert 0 < token.expires_in <= 3599
     assert token.expires_at is not None
-    assert token.token == "test_token"
+    assert token.token == "token"
 
 
 async def test_token_no_oauth_config(client: toadr3.ToadrClient) -> None:

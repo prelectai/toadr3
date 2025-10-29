@@ -1,11 +1,8 @@
-from typing import Protocol
-
-import aiohttp
 import pytest
-from aiohttp import ClientSession
+from _common_test_utils import QueryFunction, check_functions_raises
 
 from toadr3 import (
-    AccessToken,
+    ToadrClient,
     ToadrError,
     get_events,
     get_programs,
@@ -13,20 +10,6 @@ from toadr3 import (
     get_subscriptions,
     models,
 )
-from toadr3.models import DocstringBaseModel
-
-
-class QueryFunction(Protocol):
-    """A protocol for query functions like get_events and get_programs."""
-
-    async def __call__(
-        self,
-        session: aiohttp.ClientSession | None,
-        vtn_url: str | None,
-        access_token: AccessToken | None,
-        **kwargs: object,
-    ) -> list[DocstringBaseModel]:
-        """Signature with common parameters for query functions."""
 
 
 @pytest.mark.parametrize(
@@ -37,10 +20,13 @@ class QueryFunction(Protocol):
         get_subscriptions,
     ],
 )
-async def test_target_type_is_none(function: QueryFunction) -> None:
+async def test_target_type_is_none(function: QueryFunction, client: ToadrClient) -> None:
     msg = "target_type is required when target_values are provided"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, target_values=["121"])
+    kwargs = {
+        "target_type": None,
+        "target_values": ["121"],
+    }
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
 
 
 @pytest.mark.parametrize(
@@ -51,150 +37,165 @@ async def test_target_type_is_none(function: QueryFunction) -> None:
         get_subscriptions,
     ],
 )
-async def test_target_type_is_not_str_or_target_type(function: QueryFunction) -> None:
-    msg = "target_type must be TargetType or str"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, target_type=1, target_values=["121"])
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_subscriptions,
-    ],
-)
-async def test_target_values_is_none(function: QueryFunction) -> None:
-    msg = "target_values are required when target_type is provided"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, target_type=models.TargetType.SERVICE_AREA)
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_subscriptions,
-    ],
-)
-async def test_target_values_not_list(function: QueryFunction) -> None:
-    msg = "target_values must be a list of strings"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(
-            None,
-            "",
-            None,
-            target_type=models.TargetType.SERVICE_AREA,
-            target_values="121",
-        )
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_skip_not_int(function: QueryFunction) -> None:
-    msg = "skip must be an integer"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, skip="0")
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_skip_negative(function: QueryFunction) -> None:
-    msg = "skip must be a positive integer"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, skip=-1)
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_limit_not_int(function: QueryFunction) -> None:
-    msg = "limit must be an integer"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, limit="0")
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_limit_out_of_range_negative(function: QueryFunction) -> None:
-    msg = "limit must be a positive integer"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, limit=-1)
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_multiple_errors(function: QueryFunction) -> None:
-    msg = "skip must be a positive integer, limit must be a positive integer"
-    with pytest.raises(ValueError, match=msg):
-        _ = await function(None, "", None, skip=-1, limit=-1)
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_forbidden(session: ClientSession, function: QueryFunction) -> None:
-    with pytest.raises(ToadrError, match="Forbidden"):
-        _ = await function(session, "", None)
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        get_events,
-        get_programs,
-        get_reports,
-        get_subscriptions,
-    ],
-)
-async def test_with_custom_header(
-    session: ClientSession, token: AccessToken, function: QueryFunction
+async def test_target_type_is_not_str_or_target_type(
+    function: QueryFunction, client: ToadrClient
 ) -> None:
-    all_items = await function(session, "", token)
-    items = await function(session, "", token, custom_headers={"X-Custom-Header": "CustomValue"})
+    msg = "target_type must be TargetType or str"
+    kwargs = {
+        "target_type": 1,
+        "target_values": ["121"],
+    }
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
 
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_subscriptions,
+    ],
+)
+async def test_target_values_is_none(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "target_values are required when target_type is provided"
+    kwargs = {
+        "target_type": models.TargetType.SERVICE_AREA,
+        "target_values": None,
+    }
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_subscriptions,
+    ],
+)
+async def test_target_values_not_list(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "target_values must be a list of strings"
+    kwargs = {
+        "target_type": models.TargetType.SERVICE_AREA,
+        "target_values": "121",
+    }
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_skip_not_int(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "skip must be an integer"
+    kwargs = {"skip": "0"}
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_skip_negative(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "skip must be a positive integer"
+    kwargs = {"skip": -1}
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_limit_not_int(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "limit must be an integer"
+    kwargs = {"limit": "0"}
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_limit_out_of_range_negative(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "limit must be a positive integer"
+    kwargs = {"limit": -1}
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_multiple_errors(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "skip must be a positive integer, limit must be a positive integer"
+    kwargs = {"skip": -1, "limit": -1}
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_forbidden(function: QueryFunction, client: ToadrClient) -> None:
+    token = await client.token
+    assert token is not None
+    token._token = "invalid"  # noqa: SLF001
+
+    msg = "Forbidden - Invalid or missing access token"
+    await check_functions_raises(function, {}, msg, client, ToadrError)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        get_events,
+        get_programs,
+        get_reports,
+        get_subscriptions,
+    ],
+)
+async def test_with_custom_header(function: QueryFunction, client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    kwargs = {"custom_headers": {"X-Custom-Header": "CustomValue"}}
+    all_items = await function(session, vtn_url, token)
+
+    items = await function(session, vtn_url, token, **kwargs)
+    assert len(items) == len(all_items)
+
+    items = await getattr(client, function.__name__)(**kwargs)
     assert len(items) == len(all_items)
 
 
@@ -208,15 +209,11 @@ async def test_with_custom_header(
     ],
 )
 async def test_with_custom_header_invalid_value(
-    session: ClientSession, token: AccessToken, function: QueryFunction
+    function: QueryFunction, client: ToadrClient
 ) -> None:
-    with pytest.raises(ToadrError, match="Invalid value for X-Custom-Header: InvalidValue"):
-        _ = await function(
-            session,
-            "",
-            token,
-            custom_headers={"X-Custom-Header": "InvalidValue"},
-        )
+    msg = "Invalid value for X-Custom-Header: InvalidValue"
+    kwargs = {"custom_headers": {"X-Custom-Header": "InvalidValue"}}
+    await check_functions_raises(function, kwargs, msg, client, ToadrError)
 
 
 @pytest.mark.parametrize(
@@ -228,26 +225,39 @@ async def test_with_custom_header_invalid_value(
         get_subscriptions,
     ],
 )
-async def test_with_extra_query_parameters(
-    session: ClientSession, token: AccessToken, function: QueryFunction
-) -> None:
-    pydantic_items = await function(session, "", token)
+async def test_with_extra_query_parameters(function: QueryFunction, client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    pydantic_items = await function(session, vtn_url, token)
     all_items = [dict(item) for item in pydantic_items]
 
     expected_odd_ids = {item["id"] for item in all_items if int(item["id"]) % 2 == 1}
     expected_even_ids = {item["id"] for item in all_items if int(item["id"]) % 2 == 0}
 
-    result = await function(session, "", token, extra_params={"x-parity": "even"})
-    even_ids = {dict(item)["id"] for item in result}
+    # Check even
+    result = await function(session, vtn_url, token, extra_params={"x-parity": "even"})
+    result_ids = {dict(item)["id"] for item in result}
+    assert result_ids == expected_even_ids
 
-    assert even_ids == expected_even_ids
+    result = await getattr(client, function.__name__)(extra_params={"x-parity": "even"})
+    result_ids = {dict(item)["id"] for item in result}
+    assert result_ids == expected_even_ids
 
-    result = await function(session, "", token, extra_params={"x-parity": "odd"})
-    odd_ids = {dict(item)["id"] for item in result}
-    assert odd_ids == expected_odd_ids
+    # Check odd
+    result = await function(session, vtn_url, token, extra_params={"x-parity": "odd"})
+    result_ids = {dict(item)["id"] for item in result}
+    assert result_ids == expected_odd_ids
 
-    with pytest.raises(ToadrError):
-        _ = await function(session, "", token, extra_params={"x-parity": "invalid"})
+    result = await getattr(client, function.__name__)(extra_params={"x-parity": "odd"})
+    result_ids = {dict(item)["id"] for item in result}
+    assert result_ids == expected_odd_ids
+
+    # Check invalid
+    kwargs = {"extra_params": {"x-parity": "invalid"}}
+    msg = "Bad Request - Invalid value for x-parity: invalid"
+    await check_functions_raises(function, kwargs, msg, client, ToadrError)
 
 
 @pytest.mark.parametrize(
@@ -259,11 +269,19 @@ async def test_with_extra_query_parameters(
         get_subscriptions,
     ],
 )
-async def test_with_skip(
-    session: ClientSession, token: AccessToken, function: QueryFunction
-) -> None:
-    all_items = await function(session, "", token)
-    items = await function(session, "", token, skip=1)
+async def test_with_skip(function: QueryFunction, client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    all_items = await function(session, vtn_url, token)
+
+    kwargs = {"skip": 1}
+
+    items = await function(session, vtn_url, token, **kwargs)
+    assert items == all_items[1:]
+
+    items = await getattr(client, function.__name__)(**kwargs)
     assert items == all_items[1:]
 
 
@@ -276,11 +294,19 @@ async def test_with_skip(
         get_subscriptions,
     ],
 )
-async def test_with_limit(
-    session: ClientSession, token: AccessToken, function: QueryFunction
-) -> None:
-    all_items = await function(session, "", token)
-    items = await function(session, "", token, limit=2)
+async def test_with_limit(function: QueryFunction, client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    all_items = await function(session, vtn_url, token)
+
+    kwargs = {"limit": 2}
+
+    items = await function(session, vtn_url, token, **kwargs)
+    assert items == all_items[:2]
+
+    items = await getattr(client, function.__name__)(**kwargs)
     assert items == all_items[:2]
 
 
@@ -293,13 +319,24 @@ async def test_with_limit(
     ],
 )
 async def test_with_program_id(
-    session: ClientSession, token: AccessToken, function: QueryFunction, pid: str
+    function: QueryFunction,
+    client: ToadrClient,
+    pid: str,
 ) -> None:
-    all_items = await function(session, "", token)
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    all_items = await function(session, vtn_url, token)
     filtered_items = [item for item in all_items if getattr(item, "program_id", None) == pid]
     assert len(filtered_items) > 0, "No items found with program_id '1' for testing."
 
-    items = await function(session, "", token, program_id=pid)
+    kwargs = {"program_id": pid}
+
+    items = await function(session, vtn_url, token, **kwargs)
+    assert items == filtered_items
+
+    items = await getattr(client, function.__name__)(**kwargs)
     assert items == filtered_items
 
 
@@ -312,9 +349,20 @@ async def test_with_program_id(
     ],
 )
 async def test_with_program_id_no_match(
-    session: ClientSession, token: AccessToken, function: QueryFunction, pid: str
+    function: QueryFunction,
+    client: ToadrClient,
+    pid: str,
 ) -> None:
-    events = await function(session, "", token, program_id=pid)
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    kwargs = {"program_id": pid}
+
+    events = await function(session, vtn_url, token, **kwargs)
+    assert len(events) == 0
+
+    events = await getattr(client, function.__name__)(**kwargs)
     assert len(events) == 0
 
 
@@ -326,15 +374,23 @@ async def test_with_program_id_no_match(
     ],
 )
 async def test_with_client_name(
-    session: ClientSession,
-    token: AccessToken,
     function: QueryFunction,
+    client: ToadrClient,
 ) -> None:
-    all_items = await function(session, "", token)
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    all_items = await function(session, vtn_url, token)
     filtered_items = [item for item in all_items if getattr(item, "client_name", None) == "YAC"]
     assert len(filtered_items) > 0, "No items found with program_id '1' for testing."
 
-    items = await function(session, "", token, client_name="YAC")
+    kwargs = {"client_name": "YAC"}
+
+    items = await function(session, vtn_url, token, **kwargs)
+    assert items == filtered_items
+
+    items = await getattr(client, function.__name__)(**kwargs)
     assert items == filtered_items
 
 
@@ -345,10 +401,17 @@ async def test_with_client_name(
         get_subscriptions,
     ],
 )
-async def test_with_client_name_no_match(
-    session: ClientSession, token: AccessToken, function: QueryFunction
-) -> None:
-    events = await function(session, "", token, client_name="non-existent-client")
+async def test_with_client_name_no_match(function: QueryFunction, client: ToadrClient) -> None:
+    session = client.client_session
+    token = await client.token
+    vtn_url = client.vtn_url
+
+    kwargs = {"client_name": "non-existent-client"}
+
+    events = await function(session, vtn_url, token, **kwargs)
+    assert len(events) == 0
+
+    events = await getattr(client, function.__name__)(**kwargs)
     assert len(events) == 0
 
 
@@ -358,11 +421,11 @@ async def test_with_client_name_no_match(
         get_subscriptions,
     ],
 )
-async def test_with_objects_not_a_list(
-    session: ClientSession, token: AccessToken, function: QueryFunction
-) -> None:
-    with pytest.raises(ValueError, match="objects must be a list of strings or ObjectType"):
-        _ = await function(session, "", token, objects="non-existent-client")
+async def test_with_objects_not_a_list(function: QueryFunction, client: ToadrClient) -> None:
+    msg = "objects must be a list of strings or ObjectType"
+    kwargs = {"objects": "not a list"}
+
+    await check_functions_raises(function, kwargs, msg, client, ValueError)
 
 
 @pytest.mark.parametrize(
@@ -372,11 +435,11 @@ async def test_with_objects_not_a_list(
     ],
 )
 async def test_with_objects_not_object_type_or_string(
-    session: ClientSession, token: AccessToken, function: QueryFunction
+    function: QueryFunction, client: ToadrClient
 ) -> None:
     match_msg = (
         "object type '1' must be of type string or ObjectType, "
         "object type '2' must be of type string or ObjectType"
     )
-    with pytest.raises(ValueError, match=match_msg):
-        _ = await function(session, "", token, objects=[1, 2])
+    kwargs = {"objects": [1, 2]}
+    await check_functions_raises(function, kwargs, match_msg, client, ValueError)
