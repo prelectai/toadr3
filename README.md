@@ -38,44 +38,47 @@ Currently, it supports the following operations:
 - Create a report object based on an initial event
 
 ## Example
-A small example of how to list events and reports from a VTN:
+A small example of how to list programs and events and create a report:
 
 ```python
 import asyncio
 import aiohttp
 import toadr3
 
-TOKEN_URL = ""  # URL to the OAuth2 token endpoint
-GRANT_TYPE = ""  # OAuth2 grant type
-CLAIMS = {"scope": ""}  # OAuth2 claims, e.g. {"scope": "read write"}
-CLIENT_ID = ""  # OAuth2 client ID or set to None use environment variable
-CLIENT_SECRET = ""  # OAuth2 client secret or set to None use environment variable
+
+QA_OAUTH_CONFIG = toadr3.OAuthConfig(
+    token_url="",          # URL to the OAuth2 token endpoint
+    grant_type="",         # OAuth2 grant type
+    claims={"scope": ""},  # OAuth2 claims, for example 'scope'
+    client_id="",          # OAuth2 client ID or set to None use environment variable
+    client_secret="",      # OAuth2 secret or set to None use environment variable
+)
 
 VTN_URL = ""  # URL to the VTN
 
-
 async def main():
-  async with aiohttp.ClientSession() as session:
-    token = await toadr3.acquire_access_token(
-      session, TOKEN_URL, GRANT_TYPE, CLAIMS, CLIENT_ID, CLIENT_SECRET
-    )
-
-    events = await toadr3.get_events(session, VTN_URL, token)
-
+  async with toadr3.ToadrClient(vtn_url=VTN_URL, oauth_config=QA_OAUTH_CONFIG) as client:
+    programs = await client.get_programs()
+    for program in programs:
+      print(f"Program: ID={program.id}, Name={program.program_name}")
+        
+    events = await client.get_events()
     for event in events:
-      print(f"Event ID: {event.id} - {event.event_name}")
-
-    reports = await toadr3.get_reports(session, VTN_URL, token)
-    for report in reports:
-      print(f"Report ID: {report.id} - {report.report_name}")
+      print(f"Event: ID={event.id}, Name={event.event_name}, Date={event.created_date_time}")
 
     report = toadr3.models.Report.create_report(
       event=events[0],
-      client_name="client_name",
-      report_type="REPORT_TYPE",
-      report_values=[...],
+      client_name="ReadmeClient",
+      report_type="README_REPORT",
+      report_values=[True],
     )
-    result = await toadr3.post_report(session, VTN_URL, token, report)
+
+    try:
+      result = await client.post_report(report)
+      print(f"Report created with ID={result.id}")
+    except toadr3.ToadrError as e:
+      print(f"ToadrError: {e}")
+ 
 
 
 if __name__ == '__main__':
