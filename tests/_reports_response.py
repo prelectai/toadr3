@@ -67,6 +67,14 @@ async def reports_post_response(request: web.Request) -> web.Response:
     report_data = await request.json()
     custom_header = request.headers.get("X-Custom-Header", None)
 
+    if report_data["clientName"] == "Unauthorized":
+        data = {
+            "status": 401,
+            "title": "Unauthorized",
+            "detail": "You are not authorized to perform this action",
+        }
+        return web.json_response(data=data, status=401)
+
     if report_data["eventID"] == "35" or report_data["id"] == "123":
         data = {
             "status": 409,

@@ -171,7 +171,7 @@ async def test_forbidden(function: QueryFunction, client: ToadrClient) -> None:
     assert token is not None
     token._token = "invalid"  # noqa: SLF001
 
-    msg = "Forbidden - Invalid or missing access token"
+    msg = "Forbidden 403 - Invalid or missing access token"
     await check_functions_raises(function, {}, msg, client, ToadrError)
 
 
@@ -256,7 +256,7 @@ async def test_with_extra_query_parameters(function: QueryFunction, client: Toad
 
     # Check invalid
     kwargs = {"extra_params": {"x-parity": "invalid"}}
-    msg = "Bad Request - Invalid value for x-parity: invalid"
+    msg = "Bad Request 400 - Invalid value for x-parity: invalid"
     await check_functions_raises(function, kwargs, msg, client, ToadrError)
 
 

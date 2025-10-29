@@ -6,6 +6,42 @@ from toadr3.access_token import AccessToken
 from toadr3.exceptions import ToadrError
 
 
+async def default_error_handler(response: aiohttp.ClientResponse, msg: str | None = None) -> None:
+    """Error handler that generates a ToadrError from a Problem JSON response.
+
+    Parameters
+    ----------
+    response: aiohttp.ClientResponse
+        Response from server
+    msg: str | None
+        Pre-message to add to the message.
+
+    Raises
+    ------
+    ToadrError
+        Raises a ToadrError from a Problem JSON response.
+    """
+    json_response = await response.json()  # JSON should be of type Problem schema
+    status = response.status
+
+    message = ""
+    if msg is not None:
+        message = f"{msg} "
+
+    message += json_response["title"]
+
+    if "detail" in json_response:
+        message = f"{message} {status} - {json_response['detail']}"
+
+    raise ToadrError(
+        message,
+        status_code=response.status,
+        reason=response.reason,
+        headers=response.headers,  # type: ignore[arg-type]
+        json_response=json_response,
+    )
+
+
 async def get_query(
     session: aiohttp.ClientSession,
     vtn_url: str,
@@ -56,22 +92,8 @@ async def get_query(
         if not response.ok:
             match response.status:
                 case 400 | 403 | 500:
-                    json_response = await response.json()  # JSON should be of type Problem schema
-                    message = json_response["title"]
-
-                    if "detail" in json_response:
-                        message = f"{message} - {json_response['detail']}"
-
-                    raise ToadrError(
-                        message,
-                        status_code=response.status,
-                        reason=response.reason,
-                        headers=response.headers,  # type: ignore[arg-type]
-                        json_response=json_response,
-                    )
+                    await default_error_handler(response)
                 case _:
-                    raise RuntimeError(
-                        f"Unexpected response status: {response.status} {response.reason}"
-                    )
+                    await default_error_handler(response, "Unexpected error status!")
 
         return await response.json()
