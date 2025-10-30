@@ -10,8 +10,10 @@ from toadr3._internal import (
     ProgramID,
     QueryParams,
     SkipAndLimit,
+    SubscriptionID,
     Targets,
 )
+from toadr3._internal.object_id import ObjectID
 from toadr3.models import ObjectType, TargetType
 
 
@@ -29,60 +31,77 @@ def test_client_name() -> None:
     assert params["clientName"] == "YAC"
 
 
-def test_program_id() -> None:
-    args = {"program_id": "YAC"}
+@pytest.mark.parametrize("object_id_class", [EventID, ProgramID, SubscriptionID])
+def test_object_id(object_id_class: type[ObjectID]) -> None:
+    arg_name = object_id_class._attribute[0]  # noqa: SLF001
+    param_name = object_id_class._attribute[1]  # noqa: SLF001
+    args = {
+        arg_name: "Valid-ID_5",
+    }
+
     errors: list[str] = []
-    ProgramID.check_query_parameters(errors, args)
+    object_id_class.check_query_parameters(errors, args)
     assert len(errors) == 0
 
     params: QueryParams = {}
-    ProgramID.create_query_parameters(params, args)
+    object_id_class.create_query_parameters(params, args)
     assert len(params) == 1
-    assert params["programID"] == "YAC"
+    assert params[param_name] == "Valid-ID_5"
 
 
-def test_program_id_error_empty_string() -> None:
-    args = {"program_id": ""}
+@pytest.mark.parametrize("object_id_class", [EventID, ProgramID, SubscriptionID])
+def test_object_id_error_empty_string(object_id_class: type[ObjectID]) -> None:
+    arg_name = object_id_class._attribute[0]  # noqa: SLF001
+    args = {
+        arg_name: "",
+    }
+
     errors: list[str] = []
-    ProgramID.check_query_parameters(errors, args)
+    object_id_class.check_query_parameters(errors, args)
     assert len(errors) == 1
-    assert errors[0] == "program_id must be between 1 and 128 characters long"
+    assert errors[0] == f"{arg_name} must be between 1 and 128 characters long"
 
 
-def test_program_id_error() -> None:
-    args = {"program_id": "YAC++"}
+@pytest.mark.parametrize("object_id_class", [EventID, ProgramID, SubscriptionID])
+def test_object_id_error_invalid_id(object_id_class: type[ObjectID]) -> None:
+    arg_name = object_id_class._attribute[0]  # noqa: SLF001
+    args = {
+        arg_name: "Invalid@ID++",
+    }
+
     errors: list[str] = []
-    ProgramID.check_query_parameters(errors, args)
+    object_id_class.check_query_parameters(errors, args)
     assert len(errors) == 1
-    assert errors[0] == "program_id 'YAC++' does not match regex '^[a-zA-Z0-9_-]*$'"
+    assert errors[0] == f"{arg_name} '{args[arg_name]}' does not match regex '^[a-zA-Z0-9_-]*$'"
 
 
-def test_event_id() -> None:
-    args = {"event_id": "event_1"}
+@pytest.mark.parametrize("object_id_class", [EventID, ProgramID, SubscriptionID])
+def test_object_id_error_int(object_id_class: type[ObjectID]) -> None:
+    arg_name = object_id_class._attribute[0]  # noqa: SLF001
+    args = {
+        arg_name: 1,
+    }
+
     errors: list[str] = []
-    EventID.check_query_parameters(errors, args)
-    assert len(errors) == 0
-
-    params: QueryParams = {}
-    EventID.create_query_parameters(params, args)
-    assert len(params) == 1
-    assert params["eventID"] == "event_1"
-
-
-def test_event_id_error_empty_string() -> None:
-    args = {"event_id": ""}
-    errors: list[str] = []
-    EventID.check_query_parameters(errors, args)
+    object_id_class.check_query_parameters(errors, args)
     assert len(errors) == 1
-    assert errors[0] == "event_id must be between 1 and 128 characters long"
+    assert errors[0] == f"{arg_name} must be a string"
 
 
-def test_event_id_error() -> None:
-    args = {"event_id": "YAC++"}
+@pytest.mark.parametrize("object_id_class", [EventID, ProgramID, SubscriptionID])
+def test_object_id_error_none(object_id_class: type[ObjectID]) -> None:
+    arg_name = object_id_class._attribute[0]  # noqa: SLF001
+    args = {
+        arg_name: None,
+    }
+
     errors: list[str] = []
-    EventID.check_query_parameters(errors, args)
-    assert len(errors) == 1
-    assert errors[0] == "event_id 'YAC++' does not match regex '^[a-zA-Z0-9_-]*$'"
+    object_id_class.check_query_parameters(errors, args)
+    if object_id_class._nullable:  # noqa: SLF001
+        assert len(errors) == 0
+    else:
+        assert len(errors) == 1
+        assert errors[0] == f"{arg_name} cannot be None"
 
 
 def test_skip_and_limit() -> None:
