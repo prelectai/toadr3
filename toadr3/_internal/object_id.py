@@ -19,6 +19,9 @@ class ObjectID(QueryParameter):
     The second value represent the query parameter, for example: 'valueID'
     """
 
+    _nullable = True
+    """Override this to disable nullable values."""
+
     @classmethod
     def create_query_parameters(cls, params: QueryParams, args: dict[str, Any]) -> None:
         """Add a parameter that is an object ID."""
@@ -30,13 +33,22 @@ class ObjectID(QueryParameter):
     def check_query_parameters(cls, errors: list[str], args: dict[str, Any]) -> None:
         """Check if the ObjectID parameter is valid."""
         arg = cls._attribute[0]
-        program_id = args[arg]
-        if program_id is not None:
-            if not 1 <= len(program_id) <= 128:  # noqa: PLR2004
+        object_id = args[arg]
+
+        if not cls._nullable and object_id is None:
+            errors.append(f"{arg} cannot be None")
+            return
+
+        if object_id is not None:
+            if not isinstance(object_id, str):
+                errors.append(f"{arg} must be a string")
+                return
+
+            if not 1 <= len(object_id) <= 128:  # noqa: PLR2004
                 errors.append(f"{arg} must be between 1 and 128 characters long")
 
-            if _regex.match(program_id) is None:
-                msg = f"{arg} '{program_id}' does not match regex '{_regex.pattern}'"
+            if _regex.match(object_id) is None:
+                msg = f"{arg} '{object_id}' does not match regex '{_regex.pattern}'"
                 errors.append(msg)
 
 
@@ -58,3 +70,10 @@ class EventID(ObjectID):
     """
 
     _attribute = ("event_id", "eventID")
+
+
+class SubscriptionID(ObjectID):
+    """Subscription ID query parameter."""
+
+    _attribute = ("subscription_id", "subscriptionID")
+    _nullable = False
