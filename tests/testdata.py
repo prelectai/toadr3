@@ -1,6 +1,6 @@
 from typing import Any
 
-from toadr3.models import ObjectType, OperationType
+from toadr3.models import Event, ObjectType, OperationType, Program, Report, Subscription
 
 
 def create_event(**kwargs: str | int) -> dict[str, Any]:
@@ -171,3 +171,71 @@ def create_subscriptions() -> list[dict[str, Any]]:
         create_subscription("4", "5"),
         exception,
     ]
+
+
+# The following are default data dictionaries for creating minimal models
+def default_event() -> dict[str, Any]:
+    return {
+        "programID": "11",
+        "intervals": [
+            {
+                "id": 1,
+                "payloads": [{"type": "type", "values": ["value1"]}],
+            }
+        ],
+    }
+
+
+def default_event_model() -> Event:
+    return Event.model_validate(default_event())
+
+
+def default_report() -> dict[str, Any]:
+    return {
+        "programID": "11",
+        "eventID": "33",
+        "clientName": "YAC",
+        "resources": [
+            {
+                "resourceName": "resource1",
+                "intervals": [
+                    {
+                        "id": 1,
+                        "payloads": [{"type": "type", "values": ["value1"]}],
+                    }
+                ],
+            }
+        ],
+    }
+
+
+def default_report_model() -> Report:
+    return Report.model_validate(default_report())
+
+
+def default_program() -> dict[str, Any]:
+    return {
+        "programName": "pname",
+    }
+
+
+def default_program_model() -> Program:
+    return Program.model_validate(default_program())
+
+
+def default_subscription() -> dict[str, Any]:
+    return {
+        "clientName": "YAC",
+        "programID": "11",
+        "objectOperations": [
+            {
+                "objects": ["EVENT"],
+                "operations": ["POST"],
+                "callbackUrl": "https://example.com/callback",
+            }
+        ],
+    }
+
+
+def default_subscription_model() -> Subscription:
+    return Subscription.model_validate(default_subscription())

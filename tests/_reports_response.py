@@ -57,15 +57,20 @@ async def reports_get_response(request: web.Request) -> web.Response:
 async def reports_post_response(request: web.Request) -> web.Response:
     auth = request.headers.get("Authorization", None)
 
-    if auth is None:
-        data = {
-            "status": 403,
-            "title": "Forbidden",
-        }
-        return web.json_response(data=data, status=403)
+    credential_response = check_credentials(auth)
+    if credential_response is not None:
+        return credential_response
+
+    # If custom header is set but not set to "CustomValue" return 400
+    custom_header = request.headers.get("X-Custom-Header", None)
+    extra_header_response = check_custom_header(custom_header)
+    if extra_header_response is not None:
+        return extra_header_response
 
     report_data = await request.json()
-    custom_header = request.headers.get("X-Custom-Header", None)
+
+    if custom_header == "CustomValue":
+        report_data["clientName"] = "CustomClientName"
 
     if report_data["clientName"] == "Unauthorized":
         data = {
@@ -82,21 +87,6 @@ async def reports_post_response(request: web.Request) -> web.Response:
             "detail": "The report already exists",
         }
         return web.json_response(data=data, status=409)
-
-    # If custom header is not set to "CustomValue" return 400 or update clientName
-    if custom_header is not None:
-        match custom_header:
-            case "CustomValue":
-                report_data["clientName"] = "CustomClientName"
-            case _:
-                return web.json_response(
-                    data={
-                        "status": 400,
-                        "title": "Bad Request",
-                        "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-                    },
-                    status=400,
-                )
 
     # Return the report data with some additional fields
     report_data["id"] = "1234"
