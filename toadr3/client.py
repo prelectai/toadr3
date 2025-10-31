@@ -20,6 +20,7 @@ class ToadrClient:
         vtn_url: str,
         oauth_config: toadr3.OAuthConfig | None,
         session: ClientSession | None = None,
+        default_custom_headers: dict[str, str] | None = None,
     ) -> None:
         """Initialize the client.
 
@@ -31,7 +32,10 @@ class ToadrClient:
             The OAuth configuration to use or None if credentials are not required.
         session : ClientSession | None
             The session to use or None if the client should make its own session.
+        default_custom_headers : dict[str, str] | None
+            Default custom headers to include in every request.
         """
+        self._default_custom_headers = default_custom_headers or {}
         self._vtn_url = vtn_url.rstrip("/")
         self._oauth_config = oauth_config
         self._session = session if session is not None else ClientSession()
@@ -54,6 +58,11 @@ class ToadrClient:
         """Whether or not the client is closed."""
         return self._closed
 
+    @property
+    def default_custom_headers(self) -> dict[str, str]:
+        """Default custom headers to include in every request."""
+        return self._default_custom_headers
+
     async def _fetch_token(self) -> toadr3.AccessToken | None:
         """Fetch an access token from the OAuth2 server."""
         if self._oauth_config is None:
@@ -68,6 +77,11 @@ class ToadrClient:
                 self._token = await self._fetch_token()
 
             return self._token
+
+    def _prepare_headers(self, custom_headers: dict[str, str] | None) -> dict[str, str]:
+        """Prepare headers for the request."""
+        custom_headers = custom_headers or {}
+        return self._default_custom_headers | custom_headers
 
     async def get_events(
         self,
@@ -125,7 +139,7 @@ class ToadrClient:
             skip=skip,
             limit=limit,
             extra_params=extra_params,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def get_programs(
@@ -180,7 +194,7 @@ class ToadrClient:
             skip=skip,
             limit=limit,
             extra_params=extra_params,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def get_subscriptions(
@@ -248,7 +262,7 @@ class ToadrClient:
             skip=skip,
             limit=limit,
             extra_params=extra_params,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def post_subscription(
@@ -285,7 +299,7 @@ class ToadrClient:
             vtn_url=self._vtn_url,
             access_token=await self.token,
             subscription=subscription,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def get_reports(
@@ -341,7 +355,7 @@ class ToadrClient:
             skip=skip,
             limit=limit,
             extra_params=extra_params,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def post_report(
@@ -377,7 +391,7 @@ class ToadrClient:
             vtn_url=self._vtn_url,
             access_token=await self.token,
             report=report,
-            custom_headers=custom_headers,
+            custom_headers=self._prepare_headers(custom_headers),
         )
 
     async def close(self) -> None:

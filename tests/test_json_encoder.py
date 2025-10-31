@@ -3,7 +3,14 @@ from typing import Any
 
 import pytest
 from pydantic import BaseModel
-from testdata import create_event, create_report
+from testdata import (
+    create_event,
+    create_report,
+    default_event,
+    default_program,
+    default_report,
+    default_subscription,
+)
 
 from toadr3.models import Event, Program, Report, Subscription
 
@@ -41,57 +48,6 @@ def test_json_encoder_event() -> None:
     data["intervalPeriod"]["start"] = from_iso(data["intervalPeriod"]["start"])
 
     assert result == data
-
-
-def default_event() -> dict[str, Any]:
-    return {
-        "programID": "11",
-        "intervals": [
-            {
-                "id": 1,
-                "payloads": [{"type": "type", "values": ["value1"]}],
-            }
-        ],
-    }
-
-
-def default_report() -> dict[str, Any]:
-    return {
-        "programID": "11",
-        "eventID": "33",
-        "clientName": "YAC",
-        "resources": [
-            {
-                "resourceName": "resource1",
-                "intervals": [
-                    {
-                        "id": 1,
-                        "payloads": [{"type": "type", "values": ["value1"]}],
-                    }
-                ],
-            }
-        ],
-    }
-
-
-def default_program() -> dict[str, Any]:
-    return {
-        "programName": "pname",
-    }
-
-
-def default_subscription() -> dict[str, Any]:
-    return {
-        "clientName": "YAC",
-        "programID": "11",
-        "objectOperations": [
-            {
-                "objects": ["EVENT"],
-                "operations": ["POST"],
-                "callbackUrl": "https://example.com/callback",
-            }
-        ],
-    }
 
 
 @pytest.mark.parametrize(

@@ -76,8 +76,16 @@ async def subscriptions_post_response(request: web.Request) -> web.Response:
         }
         return web.json_response(data=data, status=403)
 
-    subscription_data = await request.json()
     custom_header = request.headers.get("X-Custom-Header", None)
+
+    extra_header_response = check_custom_header(custom_header)
+    if extra_header_response is not None:
+        return extra_header_response
+
+    subscription_data = await request.json()
+
+    if custom_header == "CustomValue":
+        subscription_data["clientName"] = "CustomClientName"
 
     if subscription_data["programID"] == "35" or subscription_data["id"] == "123":
         data = {
@@ -86,21 +94,6 @@ async def subscriptions_post_response(request: web.Request) -> web.Response:
             "detail": "The subscription already exists",
         }
         return web.json_response(data=data, status=409)
-
-    # If custom header is not set to "CustomValue" return 400
-    if custom_header is not None:
-        match custom_header:
-            case "CustomValue":
-                subscription_data["clientName"] = "CustomClientName"
-            case _:
-                return web.json_response(
-                    data={
-                        "status": 400,
-                        "title": "Bad Request",
-                        "detail": f"Invalid value for X-Custom-Header: {custom_header}",
-                    },
-                    status=400,
-                )
 
     # Return the report data with some additional fields
     subscription_data["id"] = "123"
