@@ -104,17 +104,6 @@ def test_interval_periods_with_non_traditional_values() -> None:
     )
     ip.duration = datetime.timedelta(days=365 * 9999)
 
-    # default for 0000-00-00 is to cause a ValidationError
-    data = '{"start":"0000-00-00"}'
-    with pytest.raises(ValidationError):
-        toadr3.models.IntervalPeriod.model_validate_json(data)
-
-    # check that 0000-00-00 is handled correctly
-    ip = toadr3.models.IntervalPeriod.model_validate_json(
-        data, context={"0000-00-00": datetime.datetime(2024, 9, 24, tzinfo=datetime.timezone.utc)}
-    )
-    assert ip.start == datetime.datetime(2024, 9, 24, tzinfo=datetime.timezone.utc)
-
-    # The default value for 0000-00-00 is not a datetime
-    with pytest.raises(ValidationError):
-        toadr3.models.IntervalPeriod.model_validate_json(data, context={"0000-00-00": "???"})
+    # 0000-00-00 is allowed as a Literal value
+    ip = toadr3.models.IntervalPeriod.model_validate_json('{"start":"0000-00-00"}')
+    assert ip.start == "0000-00-00"

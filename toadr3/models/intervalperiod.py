@@ -1,5 +1,5 @@
 import datetime
-from typing import Any
+from typing import Literal
 
 from pydantic import field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -18,16 +18,14 @@ class IntervalPeriod(DocstringBaseModel):
 
     >>> IntervalPeriod.model_validate(data, context={"allow_P9999Y_duration": True})
 
-    The `0000-00-00` start date is supported by sending the `0000-00-00` flag in the context.
-    For example:
-
-    >>> IntervalPeriod.model_validate(data, context={"0000-00-00": datetime.datetime(2024, 9, 24)})
+    The start field can also be set to the literal string "0000-00-00" to represent an
+    unspecified start time. The __str__ method will interpret this as the current time.
     """
 
     # TODO @jepebe: if there is no time zone data, the Program object may have a timeZoneOffset
     #      that can be used to adjust the time to the correct timezone
     #      https://github.com/prelectai/toadr3/issues/23
-    start: datetime.datetime
+    start: datetime.datetime | Literal["0000-00-00"]
     """The start of the interval period."""
 
     duration: datetime.timedelta = datetime.timedelta(seconds=0)
@@ -52,15 +50,10 @@ class IntervalPeriod(DocstringBaseModel):
 
         return parse_iso8601_duration(iso_duration)
 
-    @field_validator("start", mode="before")
-    @classmethod
-    def validate_start(cls, start: Any, info: ValidationInfo) -> Any:  # noqa: ANN401
-        """Handle 0000-00-00 if configured."""
-        if start == "0000-00-00" and info.context is not None and "0000-00-00" in info.context:
-            return info.context["0000-00-00"]
-
-        return start
-
     def __str__(self) -> str:
         """Return a description of the interval period."""
-        return f"{self.start} - {self.start + self.duration} (± {self.randomize_start})"
+        if isinstance(self.start, str):
+            start = datetime.datetime.now(tz=datetime.UTC)
+        else:
+            start = self.start
+        return f"{start} - {start + self.duration} (± {self.randomize_start})"
