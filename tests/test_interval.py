@@ -90,10 +90,9 @@ def test_interval_with_non_standard_start_datetime() -> None:
         }
         """
 
-    default_value = datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
-    interval = Interval.model_validate_json(data, context={"0000-00-00": default_value})
+    interval = Interval.model_validate_json(data)
     assert interval.interval_period is not None
-    assert interval.interval_period.start == default_value
+    assert interval.interval_period.start == "0000-00-00"
 
 
 def test_interval_exception_missing_id() -> None:

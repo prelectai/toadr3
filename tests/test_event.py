@@ -81,6 +81,23 @@ def test_event_defaults() -> None:
     ]
 
 
+def test_event_interval_period_start_0000_00_00() -> None:
+    data = {
+        "objectType": "EVENT",
+        "programID": "69",
+        "intervalPeriod": {"start": "0000-00-00", "duration": "PT15M", "randomizeStart": "PT0S"},
+        "intervals": [
+            {"id": 0, "payloads": [{"type": "CONSUMPTION_POWER_LIMIT", "values": [1000]}]}
+        ],
+    }
+    event = toadr3.models.Event.model_validate(data)
+
+    assert event.interval_period is not None
+    assert event.interval_period.start == "0000-00-00"
+    assert event.interval_period.duration == datetime.timedelta(minutes=15)
+    assert event.interval_period.randomize_start == datetime.timedelta(seconds=0)
+
+
 def test_event_exception_program_id() -> None:
     with pytest.raises(ValidationError):
         toadr3.models.Event.model_validate(
