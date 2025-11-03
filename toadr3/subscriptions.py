@@ -9,12 +9,16 @@ from ._internal import (
     ParameterBuilder,
     ProgramID,
     SkipAndLimit,
+    SubscriptionID,
     Targets,
     default_error_handler,
+    delete_query,
     get_query,
+    put_query,
 )
 
 _GET_PARAMS_BUILDER = ParameterBuilder(ProgramID, ClientName, Targets, Objects, SkipAndLimit)
+_GET_BY_ID_PARAMS_BUILDER = ParameterBuilder(SubscriptionID)
 
 
 async def get_subscriptions(
@@ -166,3 +170,163 @@ async def post_subscription(
 
         data = await response.json()
         return Subscription.model_validate(data)
+
+
+async def get_subscription_by_id(
+    session: aiohttp.ClientSession,
+    vtn_url: str,
+    access_token: AccessToken | None,
+    subscription_id: str,
+    custom_headers: dict[str, str] | None = None,
+) -> Subscription:
+    """Get a subscription by ID.
+
+    Parameters
+    ----------
+    session: aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    vtn_url: str
+        The URL of the VTN.
+    access_token: AccessToken | None
+        The access token to use for the request, use None if no token is required.
+    subscription_id : str
+        The subscription ID to search for.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
+
+    Returns
+    -------
+    Subscription
+        The subscription object retrieved from the VTN.
+
+    Raises
+    ------
+    ValueError
+        If the query parameters are invalid.
+    toadr3.ToadrException
+        If the request to the VTN fails. Specifically, response status 400, 403, 404, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
+    """
+    _GET_BY_ID_PARAMS_BUILDER.check_query_parameters({"subscription_id": subscription_id})
+
+    data = await get_query(
+        session,
+        f"{vtn_url}/subscriptions/{subscription_id}",
+        access_token,
+        custom_headers=custom_headers,
+        accept_404=True,
+    )
+
+    return Subscription.model_validate(data)
+
+
+async def delete_subscription_by_id(
+    session: aiohttp.ClientSession,
+    vtn_url: str,
+    access_token: AccessToken | None,
+    subscription_id: str,
+    custom_headers: dict[str, str] | None = None,
+) -> Subscription:
+    """Delete a subscription by ID.
+
+    Parameters
+    ----------
+    session: aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    vtn_url: str
+        The URL of the VTN.
+    access_token: AccessToken | None
+        The access token to use for the request, use None if no token is required.
+    subscription_id : str
+        The subscription ID to search for.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
+
+    Returns
+    -------
+    Subscription
+        The subscription object deleted from the VTN.
+
+    Raises
+    ------
+    ValueError
+        If the query parameters are invalid.
+    toadr3.ToadrException
+        If the request to the VTN fails. Specifically, response status 400, 403, 404, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
+    """
+    _GET_BY_ID_PARAMS_BUILDER.check_query_parameters({"subscription_id": subscription_id})
+
+    data = await delete_query(
+        session,
+        f"{vtn_url}/subscriptions/{subscription_id}",
+        access_token,
+        custom_headers=custom_headers,
+        accept_404=True,
+    )
+
+    return Subscription.model_validate(data)
+
+
+async def put_subscription_by_id(
+    session: aiohttp.ClientSession,
+    vtn_url: str,
+    access_token: AccessToken | None,
+    subscription_id: str,
+    subscription: Subscription,
+    custom_headers: dict[str, str] | None = None,
+) -> Subscription:
+    """Update a subscription by ID.
+
+    Parameters
+    ----------
+    session: aiohttp.ClientSession
+        The aiohttp session to use for the request.
+    vtn_url: str
+        The URL of the VTN.
+    access_token: AccessToken | None
+        The access token to use for the request, use None if no token is required.
+    subscription_id : str
+        The subscription ID to search for.
+    subscription: Subscription
+        The subscription object with updated values.
+    custom_headers : dict[str, str] | None
+        Extra headers to include in the request.
+
+    Returns
+    -------
+    Subscription
+        The subscription object deleted from the VTN.
+
+    Raises
+    ------
+    ValueError
+        If the query parameters are invalid.
+    toadr3.ToadrException
+        If the request to the VTN fails. Specifically, response status 400, 403, 404, or 500,
+    aiohttp.ClientError
+        If there is an unexpected error with the HTTP request to the VTN.
+    """
+    _GET_BY_ID_PARAMS_BUILDER.check_query_parameters({"subscription_id": subscription_id})
+
+    if subscription is None:
+        raise ValueError("subscription is required")
+
+    data = subscription.model_dump_json(exclude_none=True, exclude_unset=True)
+
+    if custom_headers is None:
+        custom_headers = {}
+    custom_headers["Content-Type"] = "application/json"
+
+    data = await put_query(
+        session,
+        f"{vtn_url}/subscriptions/{subscription_id}",
+        access_token,
+        body=data,
+        custom_headers=custom_headers,
+        accept_404=True,
+    )
+
+    return Subscription.model_validate(data)

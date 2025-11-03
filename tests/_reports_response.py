@@ -80,7 +80,7 @@ async def reports_post_response(request: web.Request) -> web.Response:
         }
         return web.json_response(data=data, status=401)
 
-    if report_data["eventID"] == "35" or report_data["id"] == "123":
+    if report_data["eventID"] == "35" or ("id" in report_data and report_data["id"] == "123"):
         data = {
             "status": 409,
             "title": "Conflict",
