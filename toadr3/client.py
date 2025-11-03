@@ -7,6 +7,8 @@ from aiohttp import ClientSession
 import toadr3
 from toadr3.models import Event, ObjectType, Program, Report, Subscription, TargetType
 
+from .exceptions import NOT_FOUND, ToadrError
+
 
 class ToadrClient:
     """Client to interact with OpenADR3 VTN servers.
@@ -301,6 +303,129 @@ class ToadrClient:
             subscription=subscription,
             custom_headers=self._prepare_headers(custom_headers),
         )
+
+    async def get_subscription(
+        self, subscription_id: str, custom_headers: dict[str, str] | None = None
+    ) -> Subscription | None:
+        """Get a subscription by ID.
+
+        Parameters
+        ----------
+        subscription_id : str
+            The subscription ID to search for.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Subscription | None
+            The subscription object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.get_subscription_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                subscription_id=subscription_id,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
+
+    async def delete_subscription(
+        self, subscription_id: str, custom_headers: dict[str, str] | None = None
+    ) -> Subscription | None:
+        """Delete a subscription by ID.
+
+        Parameters
+        ----------
+        subscription_id : str
+            The subscription ID to search for.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Subscription | None
+            The subscription object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.delete_subscription_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                subscription_id=subscription_id,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
+
+    async def put_subscription(
+        self,
+        subscription_id: str,
+        subscription: Subscription,
+        custom_headers: dict[str, str] | None = None,
+    ) -> Subscription | None:
+        """Update a subscription by ID.
+
+        Parameters
+        ----------
+        subscription_id : str
+            The subscription ID to search for.
+        subscription : Subscription
+            The subscription object with updated values.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Subscription | None
+            The subscription object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.put_subscription_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                subscription_id=subscription_id,
+                subscription=subscription,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
 
     async def get_reports(
         self,

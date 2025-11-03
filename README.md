@@ -33,6 +33,9 @@ Currently, it supports the following operations:
   - Filter by target type and target values
   - Filter by objects
   - Limit and skip for pagination
+- Update a subscription [PUT]
+- Delete a subscription [DELETE]
+- Get a subscription by id [GET]
 - Create a report [POST]
 - Create a subscription [POST]
 - Create a report object based on an initial event

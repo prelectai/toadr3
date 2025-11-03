@@ -136,6 +136,8 @@ def create_programs() -> list[dict[str, Any]]:
 def create_subscription(sid: str, pid: str, client_name: str = "YAC") -> dict[str, Any]:
     return {
         "id": f"{sid}",
+        "createdDateTime": "2025-08-21T07:13:00Z",
+        "modificationDateTime": "2025-08-23T08:10:00Z",
         "objectType": "SUBSCRIPTION",
         "clientName": f"{client_name}",
         "programID": f"{pid}",
@@ -224,6 +226,7 @@ def default_program_model() -> Program:
 
 
 def default_subscription() -> dict[str, Any]:
+    """Create a data for a Subscription model with minimal required data."""
     return {
         "clientName": "YAC",
         "programID": "11",
@@ -238,4 +241,5 @@ def default_subscription() -> dict[str, Any]:
 
 
 def default_subscription_model() -> Subscription:
+    """Create a default Subscription model with minimal required data."""
     return Subscription.model_validate(default_subscription())

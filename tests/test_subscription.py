@@ -1,3 +1,5 @@
+import datetime
+
 from testdata import create_subscription
 
 from toadr3.models import ObjectType, OperationType, Subscription
@@ -9,8 +11,10 @@ def test_subscription() -> None:
     subscription = Subscription.model_validate(data)
 
     assert subscription.id == "1"
-    assert subscription.created is None
-    assert subscription.modified is None
+    assert subscription.created is not None
+    assert isinstance(subscription.created, datetime.datetime)
+    assert subscription.modified is not None
+    assert isinstance(subscription.modified, datetime.datetime)
 
     assert subscription.object_type == "SUBSCRIPTION"
     assert subscription.client_name == "YAC"

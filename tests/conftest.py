@@ -6,7 +6,11 @@ from _common_test_utils import create_problem_response
 from _event_response import events_get_response
 from _programs_response import programs_get_response
 from _reports_response import reports_get_response, reports_post_response
-from _subscriptions_response import subscriptions_get_response, subscriptions_post_response
+from _subscriptions_response import (
+    subscriptions_by_id_response,
+    subscriptions_get_response,
+    subscriptions_post_response,
+)
 from _token_response import token_post_response
 from aiohttp import ClientSession, web
 from aiohttp.pytest_plugin import AiohttpClient
@@ -31,7 +35,7 @@ async def _exception_wrapper(
                 title=f"An unexpected error occurred: {e}",
                 status=500,
                 detail=(
-                    "The MockVTNServer raised an exception instead of "
+                    "The response creator raised an exception instead of "
                     "producing a 'web.Response' object.\n"
                     f"{'*' * 50}\n"
                     "Exception info:\n"
@@ -86,6 +90,18 @@ async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     app.router.add_get(
         path="/vtn_url/subscriptions",
         handler=await _exception_wrapper(subscriptions_get_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/subscriptions/{id}",
+        handler=await _exception_wrapper(subscriptions_by_id_response),
+    )
+    app.router.add_delete(
+        path="/vtn_url/subscriptions/{id}",
+        handler=await _exception_wrapper(subscriptions_by_id_response),
+    )
+    app.router.add_put(
+        path="/vtn_url/subscriptions/{id}",
+        handler=await _exception_wrapper(subscriptions_by_id_response),
     )
     app.router.add_post(
         path="/vtn_url/subscriptions",
