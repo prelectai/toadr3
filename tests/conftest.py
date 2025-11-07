@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 import pytest
 from _common_test_utils import create_problem_response
 from _event_response import events_get_response
-from _programs_response import programs_get_response
+from _programs_response import programs_by_id_response, programs_get_response
 from _reports_response import reports_get_response, reports_post_response
 from _subscriptions_response import (
     subscriptions_by_id_response,
@@ -102,6 +102,18 @@ async def session(aiohttp_client: AiohttpClient) -> ClientSession:
     app.router.add_put(
         path="/vtn_url/subscriptions/{id}",
         handler=await _exception_wrapper(subscriptions_by_id_response),
+    )
+    app.router.add_get(
+        path="/vtn_url/programs/{id}",
+        handler=await _exception_wrapper(programs_by_id_response),
+    )
+    app.router.add_delete(
+        path="/vtn_url/programs/{id}",
+        handler=await _exception_wrapper(programs_by_id_response),
+    )
+    app.router.add_put(
+        path="/vtn_url/programs/{id}",
+        handler=await _exception_wrapper(programs_by_id_response),
     )
     app.router.add_post(
         path="/vtn_url/subscriptions",

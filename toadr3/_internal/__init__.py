@@ -1,5 +1,5 @@
 from .client_name import ClientName
-from .object_id import EventID, ProgramID, SubscriptionID
+from .object_id import EventID, ProgramID, ProgramIDPathParameter, SubscriptionID
 from .objects import Objects
 from .parameter_builder import ParameterBuilder
 from .query_handler import default_error_handler, delete_query, get_query, put_query
@@ -13,6 +13,7 @@ __all__ = [
     "Objects",
     "ParameterBuilder",
     "ProgramID",
+    "ProgramIDPathParameter",
     "QueryParameter",
     "QueryParams",
     "SkipAndLimit",
