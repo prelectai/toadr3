@@ -77,3 +77,14 @@ class SubscriptionID(ObjectID):
 
     _attribute = ("subscription_id", "subscriptionID")
     _nullable = False
+
+
+class ProgramIDPathParameter(ObjectID):
+    """Program ID in path query parameter.
+
+    program_id : str
+        The program ID to use in the path.
+    """
+
+    _attribute = ("program_id", "programID")
+    _nullable = False

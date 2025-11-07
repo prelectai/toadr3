@@ -36,6 +36,9 @@ Currently, it supports the following operations:
 - Update a subscription [PUT]
 - Delete a subscription [DELETE]
 - Get a subscription by id [GET]
+- Update a program [PUT]
+- Delete a program [DELETE]
+- Get a program by id [GET]
 - Create a report [POST]
 - Create a subscription [POST]
 - Create a report object based on an initial event

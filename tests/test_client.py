@@ -1,6 +1,6 @@
 import pytest
 from pydantic import BaseModel
-from testdata import default_report_model, default_subscription_model
+from testdata import default_program_model, default_report_model, default_subscription_model
 
 import toadr3
 
@@ -22,6 +22,9 @@ async def test_client_context_manager(client: toadr3.ToadrClient) -> None:
     ("method_name", "method_args"),
     [
         ("get_programs", ()),
+        ("delete_program", ("id",)),
+        ("get_program", ("id",)),
+        ("put_program", ("id", default_program_model())),
         ("get_events", ()),
         ("get_reports", ()),
         ("post_report", (default_report_model(),)),
@@ -56,6 +59,9 @@ async def test_client_default_custom_headers_passthrough(
     ("method_name", "method_args"),
     [
         ("get_programs", ()),
+        ("delete_program", ("id",)),
+        ("get_program", ("id",)),
+        ("put_program", ("id", default_program_model())),
         ("get_events", ()),
         ("get_reports", ()),
         ("post_report", (default_report_model(),)),

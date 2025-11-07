@@ -427,6 +427,129 @@ class ToadrClient:
                 return None
             raise e
 
+    async def get_program(
+        self, program_id: str, custom_headers: dict[str, str] | None = None
+    ) -> Program | None:
+        """Get a program by ID.
+
+        Parameters
+        ----------
+        program_id : str
+            The program ID to search for.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Program | None
+            The program object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.get_program_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                program_id=program_id,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
+
+    async def delete_program(
+        self, program_id: str, custom_headers: dict[str, str] | None = None
+    ) -> Program | None:
+        """Delete a program by ID.
+
+        Parameters
+        ----------
+        program_id : str
+            The program ID to search for.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Program | None
+            The program object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.delete_program_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                program_id=program_id,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
+
+    async def put_program(
+        self,
+        program_id: str,
+        program: Program,
+        custom_headers: dict[str, str] | None = None,
+    ) -> Program | None:
+        """Update a program by ID.
+
+        Parameters
+        ----------
+        program_id : str
+            The program ID to search for.
+        program : Program
+            The program object with updated values.
+        custom_headers : dict[str, str] | None
+            Extra headers to include in the request.
+
+        Returns
+        -------
+        Program | None
+            The program object retrieved from the VTN or None if not found.
+
+        Raises
+        ------
+        ValueError
+            If the query parameters are invalid.
+        toadr3.ToadrException
+            If the request to the VTN fails. Specifically, response status 400, 403, or 500,
+        aiohttp.ClientError
+            If there is an unexpected error with the HTTP request to the VTN.
+        """
+        try:
+            return await toadr3.put_program_by_id(
+                session=self._session,
+                vtn_url=self._vtn_url,
+                access_token=await self.token,
+                program_id=program_id,
+                program=program,
+                custom_headers=self._prepare_headers(custom_headers),
+            )
+        except ToadrError as e:
+            if e.status_code == NOT_FOUND:
+                return None
+            raise e
+
     async def get_reports(
         self,
         program_id: str | None = None,

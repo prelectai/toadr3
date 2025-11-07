@@ -298,7 +298,7 @@ async def put_subscription_by_id(
     Returns
     -------
     Subscription
-        The subscription object deleted from the VTN.
+        The subscription object updated from the VTN.
 
     Raises
     ------
